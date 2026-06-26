@@ -1,0 +1,29 @@
+<section class="ds" id="work">
+  <div class="proj-head">
+    <div>
+      <p class="eyebrow reveal" appReveal><span class="dot">●</span> Selected work</p>
+      <h2 class="ds-title reveal delay-1" appReveal>Projects</h2>
+    </div>
+    <p class="reveal delay-2" appReveal>
+      A mix of production systems and portfolio builds at the intersection of
+      distributed backends and clinical&nbsp;/&nbsp;genomic data.
+    </p>
+  </div>
+
+  <div class="projects">
+    @for (p of projects; track p.num; let i = $index) {
+      <article class="project reveal" appReveal [class]="'reveal delay-' + (i + 1)">
+        <span class="num mono">{{ p.num }}</span>
+        <div class="body">
+          <h4>{{ p.title }}</h4>
+          <p>{{ p.desc }}</p>
+          <div class="stack">
+            @for (tag of p.stack; track tag) {
+              <span>{{ tag }}</span>
+            }
+          </div>
+        </div>
+      </article>
+    }
+  </div>
+</section>

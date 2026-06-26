@@ -1,0 +1,145 @@
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.75rem 2rem;
+  z-index: 100;
+  color: white;
+  mix-blend-mode: difference;
+  transition: padding 0.3s var(--ease);
+
+  &.scrolled {
+    padding: 1rem 2rem;
+    mix-blend-mode: normal;
+    color: var(--ink);
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 1px 0 var(--line);
+  }
+}
+
+.logo {
+  cursor: pointer;
+  transition: opacity 0.2s;
+  &:hover { opacity: 0.6; }
+}
+
+.nav-center {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2.5rem;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  a {
+    cursor: pointer;
+    position: relative;
+    transition: opacity 0.2s;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: currentColor;
+      transition: width 0.25s var(--ease);
+    }
+
+    &:hover {
+      opacity: 0.6;
+      &::after { width: 100%; }
+    }
+  }
+}
+
+.avail-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  opacity: 0.7;
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4ade80;
+    animation: pulse-dot 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s, transform 0.3s var(--ease);
+
+  &:hover {
+    opacity: 1;
+    transform: rotate(20deg);
+  }
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+  cursor: pointer;
+  color: inherit;
+  transition: opacity 0.2s;
+
+  &:hover { opacity: 0.6; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.8); }
+}
+
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .avail-badge { display: none; }
+}

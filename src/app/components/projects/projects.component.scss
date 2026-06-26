@@ -1,0 +1,101 @@
+.ds {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 6rem;
+}
+
+.eyebrow {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--grey);
+  margin-bottom: 1.25rem;
+}
+
+.ds-title {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.proj-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 4rem;
+  gap: 2rem;
+
+  p {
+    color: var(--grey);
+    line-height: 1.7;
+    max-width: 28rem;
+    font-size: 1rem;
+  }
+}
+
+.projects { display: flex; flex-direction: column; }
+
+.project {
+  display: grid;
+  grid-template-columns: 4rem 1fr;
+  gap: 2rem;
+  align-items: baseline;
+  padding: 2.5rem 0;
+  border-top: 1px solid var(--line);
+  cursor: default;
+  transition: background 0.2s;
+
+  &:last-child { border-bottom: 1px solid var(--line); }
+
+  /* informational hover: background tint only — no shift, no arrow */
+  &:hover {
+    background: var(--card-tint);
+    margin: 0 -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .num {
+    font-size: 13px;
+    color: var(--grey);
+    padding-top: 0.2rem;
+  }
+
+  .body {
+    h4 {
+      font-size: 1.6rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      color: var(--grey);
+      line-height: 1.65;
+      max-width: 44rem;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+  }
+
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    span {
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      color: var(--grey);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      transition: border-color 0.2s, color 0.2s;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .ds { padding: 4rem 1.5rem; }
+  .proj-head { flex-direction: column; align-items: flex-start; }
+  .project { grid-template-columns: 3rem 1fr; }
+  .project:hover { margin: 0; padding-left: 0; padding-right: 0; }
+}

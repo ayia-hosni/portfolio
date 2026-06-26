@@ -1,0 +1,19 @@
+<section class="ds" id="stack">
+  <div class="stack-head">
+    <p class="eyebrow reveal" appReveal><span class="dot">●</span> Toolbox</p>
+    <h2 class="ds-title reveal delay-1" appReveal>Stack</h2>
+  </div>
+
+  <div class="stack-grid">
+    @for (card of cards; track card.label; let i = $index) {
+      <div class="stack-card reveal" appReveal [class]="'reveal delay-' + (i + 1)">
+        <p class="label">{{ card.label }}</p>
+        <ul>
+          @for (item of card.items; track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+      </div>
+    }
+  </div>
+</section>

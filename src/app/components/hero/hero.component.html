@@ -1,0 +1,45 @@
+<section class="hero" id="top" [class.loaded]="loaded()">
+  <div class="hero-left">
+    <div class="accents">
+      <span class="role">Backend Engineer</span>
+      <span>2026</span>
+    </div>
+
+    <div class="hero-content">
+      <div class="stats">
+        <div class="stat">
+          <h3>4+</h3>
+          <p>Years building backends</p>
+        </div>
+        <div class="stat">
+          <h3>100K+</h3>
+          <p>Users in production</p>
+        </div>
+      </div>
+
+      <h1 class="headline">Aya Hosni</h1>
+
+      <div class="subtitle">
+        <span class="rule"></span>
+        <p>— Backend engineer building reliable, observable distributed systems with Java, Python and PHP.</p>
+      </div>
+
+      <a class="scroll-down" (click)="scrollTo('about')">
+        Scroll down
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-right"
+       #heroRight
+       (mousemove)="onMove($event, heroRight)"
+       (mouseleave)="onLeave()">
+    <div class="img-wrap">
+      <img class="img-bw" src="profile.jpg" alt="Aya Hosni" />
+      <img class="img-color" src="profile.jpg" alt="" aria-hidden="true" [class.active]="hovering()" />
+    </div>
+  </div>
+</section>
