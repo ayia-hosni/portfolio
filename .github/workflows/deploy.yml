@@ -2,7 +2,7 @@ name: Deploy Portfolio
 
 on:
   push:
-    branches: [main]
+    branches: [master]
 
 jobs:
   deploy:
@@ -22,12 +22,27 @@ jobs:
       - name: Build
         run: npm run build -- --configuration production
 
-      - name: Deploy to Hetzner via rsync
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.HETZNER_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.HETZNER_KNOWN_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Upload to staging directory
         uses: burnett01/rsync-deployments@7.0.1
         with:
           switches: -avz --delete
           path: dist/portfolio-ng/browser/
-          remote_path: /var/www/portfolio/
+          remote_path: /var/www/portfolio/dist/portfolio_new/
           remote_host: ${{ secrets.HETZNER_HOST }}
           remote_user: ${{ secrets.HETZNER_USER }}
           remote_key: ${{ secrets.HETZNER_SSH_KEY }}
+
+      - name: Atomic swap (zero downtime)
+        run: |
+          ssh ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }} "
+            mv /var/www/portfolio/dist/portfolio /var/www/portfolio/dist/portfolio_old
+            mv /var/www/portfolio/dist/portfolio_new /var/www/portfolio/dist/portfolio
+            rm -rf /var/www/portfolio/dist/portfolio_old
+          "
