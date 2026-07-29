@@ -26,7 +26,7 @@ export class StackComponent {
     },
     {
       label: 'Infra & DevOps',
-      items: ['Docker', 'Kubernetes', 'AWS EKS', 'CI/CD pipelines'],
+      items: ['Docker', 'Kubernetes', 'AWS', 'CI/CD pipelines'],
     },
     {
       label: 'Observability & Domain',
