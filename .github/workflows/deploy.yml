@@ -21,28 +21,26 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - name: Deploy over SSH
+      - name: Deploy on VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HETZNER_HOST }}
           username: ${{ secrets.HETZNER_USER }}
           key: ${{ secrets.HETZNER_SSH_KEY }}
-          script_stop: true            # stop at the first failing command
+          passphrase: ${{ secrets.HETZNER_SSH_PASSPHRASE }}
+          script_stop: true
           script: |
             set -e
             APP_DIR=/var/www/portfolio
 
             if [ ! -d "$APP_DIR/.git" ]; then
-              echo "::error::$APP_DIR is not a git clone of the repo. Clone it there first."
+              echo "ERROR: $APP_DIR is not a git clone of the repo."
               exit 1
             fi
 
             cd "$APP_DIR"
             git fetch origin master
-            git merge --ff-only origin/master      # fails loudly if the server copy has diverged
-
+            git merge --ff-only origin/master
             docker compose up -d --build --remove-orphans
             docker compose ps
-
-            # clean up images left over from previous builds
             docker image prune -f
