@@ -6,7 +6,7 @@
   --bg: #ffffff;
   --card-tint: #fafafa;
   --watermark: #fafafa;
-  --brand: #e64e2e;
+  --brand: #7a55dd;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -18,7 +18,7 @@
   --bg: #0e0e0e;
   --card-tint: #161616;
   --watermark: #161616;
-  --brand: #e64e2e;
+  --brand: #a98cf6;
 }
 
 *,
@@ -90,7 +90,7 @@ code, .mono {
   color: var(--grey);
   margin-bottom: 1.25rem;
 
-  .dot { color: var(--brand); font-size: 10px; }
+  .dot { font-size: 14px; line-height: 1; }
 }
 
 /* Marquee */
@@ -127,3 +127,12 @@ code, .mono {
 
   .sep { color: var(--brand); }
 }
+
+/* ── pencil handwriting ── */
+.pencil {
+  font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+  font-weight: 500;
+}
+.pencil-ink { filter: url(#pencil); }
+/* gentle wobble for thin line drawings: keeps strokes whole, just not perfectly straight */
+.sketchy { filter: url(#sketchy); }

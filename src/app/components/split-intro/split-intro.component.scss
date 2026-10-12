@@ -1,0 +1,136 @@
+/* Tall track: the sticky stage stays pinned while the page scrolls through it */
+.split {
+  position: relative;
+  height: 300vh;
+  border-bottom: 1px solid var(--line);
+}
+
+.stage {
+  --reveal: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;   /* tracks the mobile address bar */
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+canvas {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── ambient effects: clouds and birds appear in the white space as the A splits ── */
+.fx {
+  --split: 0;
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cloud {
+  position: absolute;
+  top: calc(var(--top) * 1%);
+  left: calc(var(--left) * 1%);
+  width: calc(var(--w) * 1px);
+  height: auto;
+  overflow: visible;
+  --in: clamp(0, calc((var(--split) - var(--delay)) * 4), 1);
+  opacity: var(--in);
+  /* each cloud pops in (grows) once its moment in the scroll arrives, then keeps drifting */
+  transform:
+    translateX(calc((var(--split) - 0.5) * var(--drift) * 1px))
+    scale(calc(0.6 + 0.4 * var(--in)));
+  will-change: transform, opacity;
+
+  .body {
+    fill: var(--tint);
+    stroke: var(--ink);
+    stroke-opacity: 0.55;
+    stroke-width: 1.3;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+
+  /* little pencil shading strokes inside the cloud */
+  .hatch {
+    fill: none;
+    stroke: var(--ink);
+    stroke-opacity: 0.35;
+    stroke-width: 1.2;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+}
+
+.bird {
+  position: absolute;
+  top: calc(var(--top) * 1%);
+  left: calc(var(--off) * 1% + var(--split) * var(--speed) * 1%);
+  width: calc(var(--size) * 1px);
+  color: var(--ink);
+  opacity: clamp(0, calc((var(--split) - 0.03) * 25), 0.75);
+  animation: bob calc(var(--bob) * 1s) ease-in-out infinite alternate;
+
+  path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    transform-origin: 14px 10px;
+    animation: flap calc(var(--flap) * 1s) ease-in-out infinite alternate;
+  }
+}
+
+@keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(0.4); } }
+@keyframes bob  { from { translate: 0 -8px; } to { translate: 0 8px; } }
+
+/* Handwritten, pencil-on-paper statement that "writes itself" as you scroll */
+.statement {
+  position: relative;
+  z-index: 2;
+  max-width: 52rem;
+  margin: 0 1.5rem;
+  padding: 2.5rem 3rem;
+  text-align: center;
+  font-size: clamp(28px, 3.6vw, 46px);
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--line);
+  border-radius: 1.5rem;
+  opacity: clamp(0, calc(var(--reveal) * 4), 1);
+  will-change: opacity;
+}
+
+.word {
+  --p: clamp(0, calc(var(--reveal) * var(--n) - var(--i)), 1);
+  display: inline-block;
+  opacity: 0.88;
+  /* the pencil moves left to right across each word */
+  clip-path: inset(-0.3em calc((1 - var(--p)) * 100% - var(--p) * 0.25em) -0.3em calc(var(--p) * -0.15em));
+}
+
+@media (max-width: 700px) {
+  .statement { padding: 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx { display: none; }
+  .split { height: auto; }
+  .stage { position: relative; height: auto; min-height: 100vh; }
+  .statement { opacity: 1; }
+  .word { clip-path: none; }
+}

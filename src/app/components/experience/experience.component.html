@@ -1,0 +1,99 @@
+<section class="intro" id="experience">
+  <span class="company-logo reveal" appReveal>
+    <img src="brain_health_usa_logo.jpeg" alt="Brain Health USA logo" width="100" height="100" />
+  </span>
+  <p class="label reveal" appReveal>[ Experience ]</p>
+  <h2 class="title" appReveal aria-label="Brain Health USA">
+    <span class="line" aria-hidden="true">
+      @for (w of words('Brain Health USA'); track $index; let wi = $index) {
+        <span class="tw">@for (ch of chars(w); track $index; let ci = $index) {<span class="tc" [style.--i]="wi * 4 + ci">{{ ch }}</span>}</span>{{ ' ' }}
+      }
+    </span>
+    <svg class="under" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M4 8 C40 2 70 13 110 7 S190 2 230 8 S280 12 296 5" /></svg>
+  </h2>
+  <p class="role reveal delay-3" appReveal>Healthcare SaaS &amp; Backend Engineering</p>
+  <p class="lead reveal delay-4" appReveal>
+    A HIPAA-compliant US EMR/EHR and telehealth product used by <strong><span class="mk">450+ providers</span></strong> across
+    <strong><span class="mk">50+ clinics</span></strong>, handling about <strong><span class="mk">1,500–2,000 appointments a day</span></strong>.
+    Here is how it came together, one chapter at a time.
+  </p>
+  <button class="begin reveal delay-5" appReveal type="button" (click)="start()">
+    Start the story
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+  </button>
+</section>
+
+<section class="story" #story aria-label="Brain Health USA, the story">
+  <div class="stage">
+    <div class="topbar">
+      <span class="co">[ Brain Health USA ]</span>
+      <div class="segs" role="tablist" aria-label="Chapters">
+        @for (c of chapters; track c.title; let i = $index) {
+          <button type="button" role="tab" class="seg" [class.on]="staticMode() ? seen().has(i) : i <= active()" [class.cur]="i === cur()"
+                  [attr.aria-selected]="i === cur()" [attr.aria-label]="'Chapter ' + (i + 1) + ': ' + c.title" (click)="goTo(i)"></button>
+        }
+      </div>
+      <span class="count" aria-hidden="true">@for (n of [cur()]; track n) {<b class="roll">{{ pad(n + 1) }}</b>} / {{ pad(chapters.length) }}</span>
+    </div>
+
+    <div class="grid">
+      <!-- text: every chapter shares one grid cell, so the tallest one sets the height and nothing jumps -->
+      <div class="texts">
+        @for (c of chapters; track c.title; let i = $index) {
+          <article class="chapter" [attr.data-i]="i" [class.active]="isOn(i)" [class.past]="!staticMode() && i < active()"
+                   [attr.aria-hidden]="!staticMode() && i !== active()" [attr.inert]="!staticMode() && i !== active() ? '' : null"
+                   [style.--hl]="i % 2 ? 'rgba(190, 160, 255, 0.55)' : 'rgba(150, 205, 255, 0.6)'">
+            <span class="bignum" aria-hidden="true">{{ pad(i + 1) }}</span>
+            <p class="kicker"><span class="k">{{ c.kicker }}</span></p>
+            <h3 class="ch-title">
+              <span class="chnum">{{ pad(i + 1) }}</span>
+              <span class="hl">
+                @for (w of words(c.title); track $index; let wi = $index) {
+                  <span class="wm"><span class="wi" [style.--i]="wi">{{ w }}</span></span>{{ ' ' }}
+                }
+              </span>
+            </h3>
+
+            @if (c.metrics) {
+              <div class="metrics">
+                @for (m of c.metrics; track m.label) {
+                  <div class="metric"><b [attr.data-final]="m.value">{{ m.value }}</b><span>{{ m.label }}</span></div>
+                }
+              </div>
+            }
+
+            <ul class="points">
+              @for (p of c.points; track p; let pi = $index) { <li [style.--n]="pi">{{ p }}</li> }
+            </ul>
+
+            <ul class="chips">
+              @for (t of c.tags; track t; let ti = $index) { <li [style.--n]="ti">{{ t }}</li> }
+            </ul>
+
+            <!-- phones and reduced motion: the illustration sits inside each chapter -->
+            <figure class="inline-art" [attr.data-n]="pad(i + 1)">
+              <img [src]="c.image" [alt]="c.alt" loading="lazy" />
+              <figcaption>{{ c.caption }}</figcaption>
+            </figure>
+          </article>
+        }
+      </div>
+
+      <!-- illustrations: stacked, cross-fading -->
+      <div class="art-col">
+        <div class="art-card">
+          <span class="badge" aria-hidden="true">{{ pad(active() + 1) }}</span>
+          <i class="diamond" aria-hidden="true"></i>
+          @for (c of chapters; track c.title; let i = $index) {
+            <img class="art" [class.active]="isOn(i)" [class.past]="!staticMode() && i < active()" [src]="c.image" [alt]="c.alt" loading="lazy" />
+          }
+        </div>
+        <div class="caps" aria-live="polite">
+          @for (c of chapters; track c.title; let i = $index) {
+            <p class="cap" [class.on]="i === active()"><span class="k">{{ c.caption }}</span></p>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -17,7 +17,7 @@ export class RevealDirective implements OnInit, OnDestroy {
           this.observer.unobserve(entry.target);
         }
       },
-      { threshold: 0.12 }
+      { threshold: 0, rootMargin: '0px 0px -8% 0px' }
     );
     this.observer.observe(this.el.nativeElement);
   }

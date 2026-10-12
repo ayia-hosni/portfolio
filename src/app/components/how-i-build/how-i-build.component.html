@@ -1,0 +1,167 @@
+<section class="intro" id="about">
+  <span class="tag reveal" appReveal>Systems &amp; Architecture</span>
+  <h2 class="lead reveal delay-1" appReveal>
+    I build backend systems that hold up in production under real traffic.
+  </h2>
+  <p class="sub reveal delay-2" appReveal>
+    Distributed services in Java and PHP, designed to stay consistent, observable and easy to change.
+  </p>
+  <button class="down reveal delay-3" appReveal type="button" aria-label="Scroll to how I build" (click)="scrollToSteps()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 5v14" /><path d="m19 12-7 7-7-7" />
+    </svg>
+  </button>
+</section>
+
+<section class="how" #how aria-label="How I build">
+  <div class="stage">
+    <div class="grid">
+
+      <!-- left: section label + live progress -->
+      <aside class="aside">
+        <span class="tag small">How I build</span>
+        <div class="counter" aria-hidden="true">
+          <b class="pencil sketchy">{{ '0' + (active() + 1) }}</b><span>/ {{ '0' + steps.length }}</span>
+        </div>
+        <svg class="bar" viewBox="0 0 176 10" aria-hidden="true" [style.--p]="(active() + 1) / steps.length">
+          <path class="track" pathLength="1" d="M3 6 C20 2 38 9 58 5 S96 2 116 6 S156 9 173 4" />
+          <path class="fill" pathLength="1" d="M3 6 C20 2 38 9 58 5 S96 2 116 6 S156 9 173 4" />
+        </svg>
+      </aside>
+
+      <!-- right: steps, each with its own marker so it always lines up with its title -->
+      <ol class="steps">
+        @for (s of steps; track s.num; let i = $index) {
+          <li class="step" [attr.data-i]="i" [class.active]="isOn(i)" [class.done]="staticMode() ? seen().has(i + 1) : i < active()">
+            <span class="marker" aria-hidden="true">
+              <span class="num">
+                <svg class="circle" viewBox="0 0 40 28"><path pathLength="1" d="M21 3 C32 2 38 8 37 14 C36 22 27 26 18 26 C8 26 2 20 3 12 C4 5 13 1 24 4" /></svg>
+                {{ s.num }}
+              </span>
+              <span class="pin"><i class="dot"></i></span>
+            </span>
+
+            <div class="body">
+              <button class="heading" type="button" [attr.aria-expanded]="i === active()" (click)="goTo(i)">
+                <span class="mobile-num">{{ s.num }}</span><span class="hl">{{ s.title }}</span>
+              </button>
+
+              <div class="content">
+                <div class="inner">
+                  <p>{{ s.text }}</p>
+                  <ul class="chips">
+                    @for (t of s.tags; track t) { <li>{{ t }}</li> }
+                  </ul>
+
+                @switch (s.art) {
+                  @case ('boundaries') {
+                    <svg class="art sketchy" viewBox="0 -18 360 178" fill="none" aria-hidden="true">
+                      <circle pathLength="1" class="ln fb" cx="22" cy="80" r="11" />
+                      <text class="lbl fade" x="22" y="112">client</text>
+                      <path pathLength="1" class="ln" d="M37 80 H78 M72 75 L78 80 L72 85" />
+                      <rect pathLength="1" class="ln fp" x="80" y="58" width="52" height="44" rx="9" />
+                      <text class="lbl fade" x="106" y="86">API</text>
+                      <path pathLength="1" class="ln" d="M132 72 C158 72 164 42 190 42 M184 37 L190 42 L183 47" />
+                      <path pathLength="1" class="ln" d="M132 88 C158 88 164 118 190 118 M184 113 L190 118 L183 123" />
+                      <rect class="bd fade" x="184" y="10" width="136" height="64" rx="14" />
+                      <rect class="bd fade" x="184" y="86" width="136" height="64" rx="14" />
+                      <rect pathLength="1" class="ln fb" x="192" y="18" width="120" height="48" rx="10" />
+                      <rect pathLength="1" class="ln fp" x="192" y="94" width="120" height="48" rx="10" />
+                      <path pathLength="1" class="ln" d="M276 34 C276 28 302 28 302 34 C302 40 276 40 276 34 M276 34 V52 C276 58 302 58 302 52 V34" />
+                      <path pathLength="1" class="ln" d="M276 110 C276 104 302 104 302 110 C302 116 276 116 276 110 M276 110 V128 C276 134 302 134 302 128 V110" />
+                      <path pathLength="1" class="dim" d="M204 58 q9 5 20 0 M232 58 q7 4 16 0" />
+                      <text class="lbl fade" x="232" y="48">service A</text>
+                      <path pathLength="1" class="dim" d="M204 134 q9 5 20 0 M232 134 q7 4 16 0" />
+                      <text class="lbl fade" x="232" y="124">service B</text>
+                      <text class="lbl small fade" x="252" y="159">own data, own contract</text>
+                      <text class="lbl note fade" x="104" y="26">one entry point</text>
+                      <path pathLength="1" class="ln na" d="M104 32 C105 40 106 48 106 56 M101 51 L106 57 L111 51" />
+                    </svg>
+                  }
+                  @case ('pipelines') {
+                    <svg class="art sketchy" viewBox="0 -18 360 178" fill="none" aria-hidden="true">
+                      <rect pathLength="1" class="ln fb" x="2" y="60" width="60" height="40" rx="8" />
+                      <text class="lbl fade" x="32" y="86">producer</text>
+                      <path pathLength="1" class="ln" d="M62 80 H80 M74 75 L80 80 L74 85" />
+                      <rect class="bd fade" x="80" y="56" width="104" height="48" rx="12" />
+                      <rect pathLength="1" class="ln fp" x="90" y="68" width="24" height="24" rx="5" />
+                      <rect pathLength="1" class="ln fb" x="120" y="68" width="24" height="24" rx="5" />
+                      <rect pathLength="1" class="ln fp" x="150" y="68" width="24" height="24" rx="5" />
+                      <text class="lbl fade" x="134" y="46">Kafka</text>
+                      <path pathLength="1" class="ln" d="M184 80 H204 M198 75 L204 80 L198 85" />
+                      <rect pathLength="1" class="ln fb" x="204" y="60" width="60" height="40" rx="8" />
+                      <text class="lbl fade" x="234" y="86">consumer</text>
+                      <path pathLength="1" class="ln" d="M264 80 H282 M276 75 L282 80 L276 85" />
+                      <path pathLength="1" class="ln fp" d="M284 66 C284 58 328 58 328 66 C328 74 284 74 284 66 M284 66 V94 C284 102 328 102 328 94 V66" />
+                      <text class="lbl fade" x="306" y="124">Redis</text>
+                      <path pathLength="1" class="dim" d="M234 100 C234 142 132 142 132 108 M126 115 L132 107 L139 114" />
+                      <text class="lbl small fade" x="182" y="156">idempotent retry</text>
+                      <text class="lbl note fade" x="306" y="34">source of truth</text>
+                      <path pathLength="1" class="ln na" d="M306 40 V54 M302 49 L306 55 L310 49" />
+                      <circle class="pkt" r="4"><animateMotion dur="2.4s" repeatCount="indefinite" path="M62 80 H202" /></circle>
+                      <circle class="pkt" r="4"><animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite" path="M62 80 H202" /></circle>
+                      <circle class="pkt" r="4"><animateMotion dur="2.4s" begin="0.6s" repeatCount="indefinite" path="M266 80 H282" /></circle>
+                    </svg>
+                  }
+                  @case ('delivery') {
+                    <svg class="art sketchy" viewBox="0 -18 360 178" fill="none" aria-hidden="true">
+                      <rect pathLength="1" class="ln fb" x="2" y="58" width="52" height="34" rx="17" />
+                      <text class="lbl fade" x="28" y="80">commit</text>
+                      <path pathLength="1" class="ln" d="M54 75 H64 M59 71 L64 75 L59 79" />
+                      <rect pathLength="1" class="ln fp" x="64" y="58" width="52" height="34" rx="17" />
+                      <text class="lbl fade" x="90" y="80">build</text>
+                      <path pathLength="1" class="ln" d="M116 75 H126 M121 71 L126 75 L121 79" />
+                      <rect pathLength="1" class="ln fb" x="126" y="58" width="52" height="34" rx="17" />
+                      <text class="lbl fade" x="152" y="80">test</text>
+                      <path pathLength="1" class="ln" d="M178 75 H188 M183 71 L188 75 L183 79" />
+                      <rect pathLength="1" class="ln fp" x="188" y="58" width="52" height="34" rx="17" />
+                      <text class="lbl fade" x="214" y="80">deploy</text>
+                      <path pathLength="1" class="ln" d="M240 75 H256 M251 71 L256 75 L251 79" />
+                      <path pathLength="1" class="dim" d="M2 104 V110 H240 V104" />
+                      <text class="lbl fade" x="121" y="130">CI / CD</text>
+                      <rect class="bd fade" x="258" y="38" width="98" height="88" rx="12" />
+                      <text class="lbl fade" x="307" y="30">AWS EKS</text>
+                      <rect class="pod b" x="268" y="52" width="22" height="22" rx="5" />
+                      <rect class="pod p" x="296" y="52" width="22" height="22" rx="5" />
+                      <rect class="pod b" x="324" y="52" width="22" height="22" rx="5" />
+                      <rect class="pod p" x="268" y="88" width="22" height="22" rx="5" />
+                      <rect class="pod b" x="296" y="88" width="22" height="22" rx="5" />
+                      <rect class="pod p" x="324" y="88" width="22" height="22" rx="5" />
+                      <text class="lbl small fade" x="307" y="146">Kubernetes pods</text>
+                      <text class="lbl note fade" x="152" y="30">no manual steps</text>
+                      <path pathLength="1" class="ln na" d="M152 36 V52 M148 47 L152 53 L156 47" />
+                    </svg>
+                  }
+                  @case ('observability') {
+                    <svg class="art sketchy" viewBox="0 -18 360 178" fill="none" aria-hidden="true">
+                      <rect pathLength="1" class="ln fb" x="8" y="12" width="236" height="128" rx="10" />
+                      <path class="bd fade" d="M20 52 H232 M20 82 H232 M20 112 H232" />
+                      <text class="lbl small left fade" x="22" y="32">latency</text>
+                      <path pathLength="1" class="dim" d="M24 128 q12 6 26 0 M60 128 q10 5 22 0" />
+                      <path pathLength="1" class="ln accent" d="M20 112 L56 100 L88 106 L122 74 L150 82 L176 40 L204 62 L232 48" />
+                      <circle class="ring" cx="176" cy="40" r="5" />
+                      <circle class="alert fade" cx="176" cy="40" r="5" />
+                      <text class="lbl note fade" x="126" y="-6">alert fires before the ticket</text>
+                      <path pathLength="1" class="ln na" d="M214 -4 C232 6 214 24 184 36 M187 28 L183 37 L193 37" />
+                      <rect pathLength="1" class="ln fp" x="258" y="12" width="94" height="58" rx="10" />
+                      <rect pathLength="1" class="ln" x="272" y="42" width="10" height="14" />
+                      <rect pathLength="1" class="ln" x="288" y="32" width="10" height="24" />
+                      <rect pathLength="1" class="ln" x="304" y="38" width="10" height="18" />
+                      <rect pathLength="1" class="ln" x="320" y="24" width="10" height="32" />
+                      <rect pathLength="1" class="ln fb" x="258" y="82" width="94" height="58" rx="10" />
+                      <path pathLength="1" class="ln" d="M278 122 A27 27 0 0 1 332 122" />
+                      <path pathLength="1" class="ln" d="M305 122 L320 102" />
+                      <text class="lbl small fade" x="180" y="157">Prometheus → Grafana</text>
+                    </svg>
+                  }
+                }
+                </div>
+              </div>
+            </div>
+          </li>
+        }
+      </ol>
+
+    </div>
+  </div>
+</section>

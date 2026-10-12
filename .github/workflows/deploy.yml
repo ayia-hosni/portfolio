@@ -1,48 +1,48 @@
 name: Deploy Portfolio
 
+# Deploys the Dockerised site: the server pulls the latest code and rebuilds the container
+# (the Dockerfile builds the Angular app and serves it with nginx inside the image).
 on:
   push:
     branches: [master]
+  workflow_dispatch:        # lets you re-run a deploy by hand from the Actions tab
+
+# never run two deploys at once; a newer push waits for the one in progress
+concurrency:
+  group: deploy-portfolio
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          node-version: 20
-          cache: npm
+          host: ${{ secrets.HETZNER_HOST }}
+          username: ${{ secrets.HETZNER_USER }}
+          key: ${{ secrets.HETZNER_SSH_KEY }}
+          script_stop: true            # stop at the first failing command
+          script: |
+            set -e
+            APP_DIR=/var/www/portfolio
 
-      - name: Install dependencies
-        run: npm ci
+            if [ ! -d "$APP_DIR/.git" ]; then
+              echo "::error::$APP_DIR is not a git clone of the repo. Clone it there first."
+              exit 1
+            fi
 
-      - name: Build
-        run: npm run build -- --configuration production
+            cd "$APP_DIR"
+            git fetch origin master
+            git merge --ff-only origin/master      # fails loudly if the server copy has diverged
 
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.HETZNER_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.HETZNER_HOST }} >> ~/.ssh/known_hosts
+            docker compose up -d --build --remove-orphans
+            docker compose ps
 
-      - name: Upload to staging directory
-        uses: burnett01/rsync-deployments@7.0.1
-        with:
-          switches: -avz --delete
-          path: dist/portfolio-ng/browser/
-          remote_path: /var/www/portfolio/dist/portfolio_new/
-          remote_host: ${{ secrets.HETZNER_HOST }}
-          remote_user: ${{ secrets.HETZNER_USER }}
-          remote_key: ${{ secrets.HETZNER_SSH_KEY }}
-
-      - name: Atomic swap (zero downtime)
-        run: |
-          ssh ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }} "
-            mv /var/www/portfolio/dist/portfolio /var/www/portfolio/dist/portfolio_old
-            mv /var/www/portfolio/dist/portfolio_new /var/www/portfolio/dist/portfolio
-            rm -rf /var/www/portfolio/dist/portfolio_old
-          "
+            # clean up images left over from previous builds
+            docker image prune -f

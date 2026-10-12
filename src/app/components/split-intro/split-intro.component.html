@@ -1,0 +1,30 @@
+<section class="split" #section aria-label="Introduction">
+  <div class="stage" #stage>
+    <canvas #canvas aria-hidden="true"></canvas>
+
+    <!-- Ambient effects in the white space, driven by the split progress -->
+    <div class="fx" aria-hidden="true">
+      @for (c of clouds; track $index) {
+        <svg class="cloud pencil-ink" viewBox="0 0 200 110"
+             [style.--top]="c.top" [style.--left]="c.left" [style.--w]="c.w"
+             [style.--drift]="c.drift" [style.--delay]="c.delay" [style.--tint]="c.tint">
+          <path class="body" d="M40 90 C15 90 8 62 32 56 C30 30 68 24 80 44 C90 14 135 14 142 46 C172 36 192 66 170 84 C168 88 164 90 158 90 Z" />
+          <path class="hatch" d="M58 74 q12 7 26 0 M96 66 q10 6 22 0 M128 76 q9 5 20 0" />
+        </svg>
+      }
+      @for (b of birds; track $index) {
+        <svg class="bird" viewBox="0 0 28 12"
+             [style.--top]="b.top" [style.--size]="b.size" [style.--off]="b.off"
+             [style.--speed]="b.speed" [style.--bob]="b.bob" [style.--flap]="b.flap">
+          <path d="M1 10 Q7 0 14 9 Q21 0 27 10" />
+        </svg>
+      }
+    </div>
+
+    <p class="statement pencil" [attr.aria-label]="text" [style.--n]="words.length">
+      @for (word of words; track $index) {
+        <span class="word pencil-ink" aria-hidden="true" [style.--i]="$index">{{ word }}</span>{{ ' ' }}
+      }
+    </p>
+  </div>
+</section>

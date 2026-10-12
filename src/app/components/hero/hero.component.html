@@ -1,45 +1,142 @@
-<section class="hero" id="top" [class.loaded]="loaded()">
-  <div class="hero-left">
-    <div class="accents">
-      <span class="role">Backend Engineer</span>
-      <span>2026</span>
+<section class="hero" id="top" #hero [class.loaded]="loaded()">
+  <div class="stage" #stage>
+    <canvas class="trail" #trail aria-hidden="true"></canvas>
+
+    <!-- Sketchbook doodles in the white space: what I do, drawn in pencil after the portrait is sketched -->
+    <div class="doodles pencil" aria-hidden="true">
+      <div class="side left">
+        <div class="note n1" style="--d: 0s">
+          <span class="mark">backend engineer</span>
+          <svg class="arrow pencil-ink draw" viewBox="0 0 100 60"><path pathLength="1" d="M4 8 C40 -2 78 14 94 46 M82 40 L95 49 L97 33" /></svg>
+        </div>
+
+      </div>
+
+      <div class="side right">
+        <div class="note n2" style="--d: 0.25s">
+          <span class="mark purple">devops engineer</span>
+          <svg class="arrow flip pencil-ink draw" viewBox="0 0 100 60"><path pathLength="1" d="M4 8 C40 -2 78 14 94 46 M82 40 L95 49 L97 33" /></svg>
+        </div>
+
+      </div>
     </div>
 
-    <div class="hero-content">
-      <div class="stats">
-        <div class="stat">
-          <h3>4+</h3>
-          <p>Years building backends</p>
-        </div>
-        <div class="stat">
-          <h3>2.5+</h3>
-          <p>Years of experience</p>
-        </div>
+
+    <!-- playful stickers around the docked portrait (pop in once the details are showing) -->
+    <div class="stickers pencil" aria-hidden="true">
+      <div class="bubble">
+        <span>service builder <i>&#9829;</i></span>
+        <span>pipeline tamer <i>&#9829;</i></span>
+        <span>bug hunter <i>&#9829;</i></span>
+      </div>
+      <svg class="bubble-arrow draw" viewBox="0 0 80 70"><path pathLength="1" d="M6 4 C8 36 30 58 66 60 M54 50 L68 60 L52 68" /></svg>
+
+      <svg class="sparks draw" viewBox="0 0 60 50"><path pathLength="1" d="M8 40 L18 26 M26 34 L30 14 M40 38 L54 28" /></svg>
+
+      <div class="burst">
+        <svg viewBox="0 0 120 120"><path d="M60.0 2.0 L69.2 13.9 L82.2 6.4 L86.1 20.9 L101.0 19.0 L99.1 33.9 L113.6 37.8 L106.1 50.8 L118.0 60.0 L106.1 69.2 L113.6 82.2 L99.1 86.1 L101.0 101.0 L86.1 99.1 L82.2 113.6 L69.2 106.1 L60.0 118.0 L50.8 106.1 L37.8 113.6 L33.9 99.1 L19.0 101.0 L20.9 86.1 L6.4 82.2 L13.9 69.2 L2.0 60.0 L13.9 50.8 L6.4 37.8 L20.9 33.9 L19.0 19.0 L33.9 20.9 L37.8 6.4 L50.8 13.9 Z" /></svg>
+        <span>good<br>logs,<br>good<br>sleep</span>
       </div>
 
-      <h1 class="headline">Aya Hosni</h1>
+      <svg class="pencil-doodle draw" viewBox="0 0 70 90"><path pathLength="1" d="M44 6 L62 22 L26 68 L8 78 L12 56 Z M44 6 L34 -2 L52 -4 M16 62 L28 72 M36 24 L52 38" /></svg>
+      <svg class="squiggle draw" viewBox="0 0 90 50"><path pathLength="1" d="M4 38 C14 6 24 6 22 30 C20 52 38 8 44 28 C48 46 62 6 68 26 C72 42 80 18 86 24" /></svg>
+    </div>
 
-      <div class="subtitle">
-        <span class="rule"></span>
-        <p>— Backend engineer building reliable, observable distributed systems with Java, Python and PHP.</p>
+    <!-- Step 1a: the welcome, above the portrait (three languages; plays once EN → AR → FR → EN) -->
+    <div class="welcome">
+      <p class="sr-only">
+        Hi, welcome! I'm Aya.
+        <span lang="ar" dir="rtl">مرحباً، أهلاً بك! أنا آية.</span>
+        <span lang="fr">Bonjour, bienvenue ! Je suis Aya.</span>
+      </p>
+
+      <div class="stack" aria-hidden="true">
+        @for (g of greetings; track g.code; let gi = $index) {
+          <p class="hello top" [class.on]="lang() === gi" [attr.lang]="g.code" [attr.dir]="g.dir">
+            @for (w of g.top; track $index; let wi = $index) {
+              <span class="w" [style.--i]="wi" [style.--c]="w.c">{{ w.t }}</span>{{ ' ' }}
+            }
+          </p>
+        }
+      </div>
+    </div>
+
+    <!-- Step 1b: "I'm Aya", the language switcher and the scroll hint, below the portrait -->
+    <div class="below">
+      <div class="stack" aria-hidden="true">
+        @for (g of greetings; track g.code; let gi = $index) {
+          <p class="hello bottom" [class.on]="lang() === gi" [attr.lang]="g.code" [attr.dir]="g.dir">
+            @for (w of g.bottom; track $index; let wi = $index) {
+              <span class="w" [style.--i]="wi + g.top.length" [style.--c]="w.c">{{ w.t }}</span>{{ ' ' }}
+            }
+            <svg class="under" viewBox="0 0 300 14"><path pathLength="1" d="M4 8 C40 2 70 13 110 7 S190 2 230 8 S280 12 296 5" /></svg>
+          </p>
+        }
       </div>
 
-      <a class="scroll-down" (click)="scrollTo('about')">
-        Scroll down
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="langs" role="group" aria-label="Change language">
+        @for (g of greetings; track g.code; let gi = $index) {
+          <button type="button" class="chip" [class.on]="lang() === gi" [attr.aria-pressed]="lang() === gi" [attr.lang]="g.code" (click)="pickLang(gi)">{{ g.label }}</button>
+        }
+      </div>
+
+      <span class="cue" [attr.lang]="greetings[lang()].code" [attr.dir]="greetings[lang()].dir">
+        {{ greetings[lang()].cue }}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>
         </svg>
-      </a>
+      </span>
     </div>
-  </div>
 
-  <div class="hero-right"
-       #heroRight
-       (mousemove)="onMove($event, heroRight)"
-       (mouseleave)="onLeave()">
-    <div class="img-wrap">
-      <img class="img-bw" src="profile.jpg" alt="Aya Hosni" />
-      <img class="img-color" src="profile.jpg" alt="" aria-hidden="true" [class.active]="hovering()" />
+    <!-- Step 2: details, revealed as the photo moves aside. Label, hand-lettered headline, circled sentence, pill buttons, stat card. -->
+    <div class="hero-left">
+      <div class="hero-content">
+        <p class="label r" style="--k: 0"><i>[</i> Backend engineer <i>]</i></p>
+
+        <h1 class="headline r" style="--k: 1">
+          <span class="row" style="--ri: 0"><span class="in"><span class="pill name">Aya Hosni</span></span></span>
+          <span class="row big" style="--ri: 1"><span class="in">Backends you can</span></span>
+          <span class="row big" style="--ri: 2"><span class="in"><span class="pill word">trust at 3 a.m.<svg class="swoosh" viewBox="0 0 300 18" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M4 11 C60 2 120 15 180 7 S270 6 296 10" /></svg></span></span></span>
+        </h1>
+
+        <p class="sub r" style="--k: 2">
+          I build reliable, observable
+          <span class="circ">distributed systems<svg class="circ-svg" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M20 8 C70 -2 150 0 188 14 C206 24 198 46 160 54 C110 62 40 60 14 44 C-2 32 6 14 40 7" /></svg></span>, and write code the next engineer can actually read.
+        </p>
+
+        <div class="cta r" style="--k: 3">
+          <button type="button" class="btn-pill" (click)="goTo('contact')">
+            Let's talk
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+          </button>
+          <span class="or pencil" aria-hidden="true">or</span>
+          <button type="button" class="btn-ghost" (click)="goTo('work')">
+            <span class="dotc"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M8.2 14c1 1.9 2.4 2.8 3.8 2.8s2.8-.9 3.8-2.8"/><path d="M9 9.6h.01M15 9.6h.01"/></svg></span>
+            See my work
+          </button>
+        </div>
+
+        <div class="statcard r" style="--k: 4">
+          <div class="stat"><b data-to="4" data-dec="0" data-suffix="+">4+</b><span>Years building backends</span></div>
+          <i class="vr"></i>
+          <div class="stat"><b data-to="2.5" data-dec="1" data-suffix="+">2.5+</b><span>Years of experience</span></div>
+          <div class="avatars" role="img" aria-label="Java, Python and PHP"><span>J</span><span>Py</span><span>P</span></div>
+        </div>
+
+        <p class="foot r" style="--k: 5">Cairo · Open to UAE / EU / Remote</p>
+      </div>
+    </div>
+
+    <!-- The photo: centered at first, glides to the right half -->
+    <div class="hero-right"
+         #heroRight
+         (mousemove)="onMove($event, heroRight)"
+         (mouseleave)="onLeave()">
+      <div class="img-wrap" #imgWrap>
+        <img class="img-bw" src="profile-cutout.webp" alt="Aya Hosni" />
+        <canvas class="sketch" #sketch aria-hidden="true"></canvas>
+        <img class="img-color" src="profile-cutout.webp" alt="" aria-hidden="true" [class.active]="hovering()" />
+      </div>
     </div>
   </div>
 </section>

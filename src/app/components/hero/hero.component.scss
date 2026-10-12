@@ -1,178 +1,681 @@
+/* Tall track: the sticky stage stays pinned while the photo glides aside */
 .hero {
   position: relative;
-  min-height: 100vh;
-  display: flex;
-  overflow: hidden;
+  height: 230vh;
   border-bottom: 1px solid var(--line);
 }
 
-/* ── LEFT ── */
-.hero-left {
-  width: 50%;
-  display: flex;
-  padding-top: 8rem;
-  padding-bottom: 3rem;
-  position: relative;
+.stage {
+  /* --e: photo position 0 (centered) → 1 (right half); --r: details reveal 0 → 1 */
+  --e: 0;
+  --r: 0;
+  --tx: 0;
+  --ty: 0;
+  /* mouse-follow strength, fades to 0 once the photo has docked */
+  --m: calc(1 - var(--e));
+  --w0: min(360px, 72%);
+  --h0: min(480px, 54%);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;   /* tracks the mobile address bar */
+  overflow: hidden;
 }
 
-.accents {
-  width: 6rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 2rem;
-  border-right: 1px solid var(--line);
-
-  span {
-    color: var(--grey);
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-  }
-
-  .role { text-transform: uppercase; }
-}
-
-.hero-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 0 6rem;
-}
-
-.stats {
-  display: flex;
-  gap: 4rem;
-  margin-bottom: 5rem;
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.6s 0.1s var(--ease), transform 0.6s 0.1s var(--ease);
-
-  .stat {
-    h3 {
-      font-size: 2rem;
-      font-weight: 300;
-      margin-bottom: 0.25rem;
-    }
-    p {
-      color: var(--grey);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-  }
-}
-
-.headline {
-  font-size: clamp(64px, 9vw, 132px);
-  font-weight: 200;
-  line-height: 0.9;
-  letter-spacing: -0.04em;
-  margin-bottom: 1.5rem;
-  margin-left: -0.06em;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.7s 0.25s var(--ease), transform 0.7s 0.25s var(--ease);
-}
-
-.subtitle {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-weight: 500;
-  font-size: 1rem;
-  max-width: 30rem;
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.6s 0.4s var(--ease), transform 0.6s 0.4s var(--ease);
-
-  .rule {
-    width: 2rem;
-    height: 1px;
-    background: var(--ink);
-    flex-shrink: 0;
-  }
-}
-
-.scroll-down {
+/* pencil strokes + light-blue clouds drawn under the mouse */
+.trail {
   position: absolute;
-  bottom: 3rem;
-  left: 10rem;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: clamp(0, calc(1 - var(--e) * 2), 1);
+}
+
+/* ── DOODLES: sketchbook notes in the white space beside the centered portrait ── */
+.doodles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  color: var(--ink);
+  opacity: clamp(0, calc(1 - var(--e) * 3), 1);
+}
+
+.side {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 34%;
+  transition: translate 0.3s ease-out;
+  &.left  { left: 0;  translate: calc(var(--tx) * -16px) calc(var(--ty) * -10px); }
+  &.right { right: 0; translate: calc(var(--tx) * -16px) calc(var(--ty) * -10px); }
+}
+
+/* strokes draw themselves once the portrait sketch is done (.ready is set from TS) */
+.draw path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  vector-effect: non-scaling-stroke;
+  transition: stroke-dashoffset 1.4s ease-in-out var(--d, 0s);
+}
+.ready .draw path { stroke-dashoffset: 0; }
+
+.note {
+  position: absolute;
+  font-size: clamp(30px, 2.8vw, 44px);
+  line-height: 1.1;
+  white-space: nowrap;
+
+  .arrow { position: absolute; width: 170px; overflow: visible; }
+}
+.note.n1 { left: 26%; top: 26%; .arrow { left: 58%; top: 118%; } }
+.note.n2 { right: 24%; top: 22%; width: 280px; height: 64px; text-align: right; .arrow { right: 78%; top: 150%; } }
+.note .arrow.flip { transform: scaleX(-1); }
+
+/* blue highlighter swipe behind the key phrase */
+.mark {
+  padding: 0 0.25em;
+  margin: 0 -0.25em;
+  background: linear-gradient(104deg, transparent 0.4em, rgba(120, 180, 255, 0.45) 0.5em, rgba(120, 180, 255, 0.35) 94%, transparent 99%);
+  background-size: 0% 62%;
+  background-position: 0 85%;
+  background-repeat: no-repeat;
+  transition: background-size 1s ease-out calc(var(--d, 0s) + 0.1s);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.ready .mark { background-size: 100% 62%; }
+
+/* purple highlighter variant for the second note */
+.mark.purple {
+  background-image: linear-gradient(104deg, transparent 0.4em, rgba(160, 130, 255, 0.42) 0.5em, rgba(160, 130, 255, 0.32) 94%, transparent 99%);
+}
+
+.mark {
+  opacity: 0;
+  transition-property: background-size, opacity;
+  transition-duration: 1s, 0.6s;
+  transition-delay: calc(var(--d, 0s) + 0.1s), var(--d, 0s);
+}
+.ready .mark { opacity: 1; }
+
+@media (max-width: 1100px) { .doodles { display: none; } }
+
+/* ── WELCOME (centered phase) ── */
+.welcome {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 6.4rem;                 /* just below the navbar, above the portrait */
+  z-index: 3;
+  text-align: center;
+  pointer-events: none;
+  opacity: clamp(0, calc(1 - var(--e) * 3), 1);
+}
+
+.below {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 3vh;
+  z-index: 3;
+  text-align: center;
+  pointer-events: none;
+  opacity: clamp(0, calc(1 - var(--e) * 3), 1);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* the three greetings share one grid cell, so the box is as tall as the tallest and nothing jumps */
+.stack { display: grid; justify-items: center; padding: 0 1rem; }
+
+.hello {
+  grid-area: 1 / 1;
+  margin: 0;
+  max-width: min(94vw, 44ch);
+  font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+  font-weight: 500;
+  line-height: 1.15;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+
+  &.on { opacity: 1; transition-delay: 0.1s; }
+
+  &.top    { font-size: clamp(30px, 3.9vw, 50px); }
+  &.bottom { font-size: clamp(40px, 5.6vw, 72px); }
+
+  &[lang='ar'] {
+    font-family: 'Playpen Sans Arabic', 'Caveat', cursive;
+    font-weight: 600;
+    line-height: 1.6;
+    &.top    { font-size: clamp(26px, 3.4vw, 42px); }
+    &.bottom { font-size: clamp(34px, 4.8vw, 60px); }
+  }
+}
+
+/* each word is a coloured pencil: a striped fill (wax strokes) + the shared pencil grain */
+.w {
+  display: inline-block;
+  padding: 0 0.16em;           /* the coloured fill must reach past the glyph overhang, or the last stroke clips */
+  margin: 0 -0.16em;
+  background: repeating-linear-gradient(118deg, var(--c) 0 2.2px, color-mix(in srgb, var(--c) 70%, transparent) 2.2px 3.4px);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: url(#pencil);
+  /* hidden until written: the pencil moves left→right (right→left for Arabic) */
+  clip-path: inset(-0.4em 100% -0.4em 0);
+}
+.hello[dir='rtl'] .w { clip-path: inset(-0.4em 0 -0.4em 100%); }
+
+.hello.on .w {
+  clip-path: inset(-0.4em -0.3em -0.4em -0.25em);
+  transition: clip-path 0.55s var(--ease) calc(var(--i) * 0.17s + 0.15s);
+}
+
+/* brand-colour pencil underline, drawn after the words */
+.under {
+  display: block;
+  width: min(70%, 420px);
+  margin: 0.05rem auto 0;
+  overflow: visible;
+
+  path {
+    fill: none;
+    stroke: var(--brand);
+    stroke-width: 3.2;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+}
+.hello.on .under path { stroke-dashoffset: 0; transition: stroke-dashoffset 0.9s var(--ease) 1.5s; }
+
+.langs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+  pointer-events: auto;
+}
+
+.chip {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--tint);
+  color: var(--grey);
+  font: 600 12px/1 -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+
+  &:hover { color: var(--ink); }
+  &.on {
+    color: var(--ink);
+    border-color: color-mix(in srgb, var(--brand) 55%, transparent);
+    background: color-mix(in srgb, var(--brand) 8%, var(--bg));
+  }
+  &:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+}
+
+@media (pointer: coarse) { .chip { padding: 0.7rem 1.05rem; } }
+
+/* once the photo has moved on, the welcome (and its buttons) must not intercept clicks */
+:host ::ng-deep .stage.past-welcome .langs { pointer-events: none; visibility: hidden; }
+
+.cue {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 12px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.6s 0.55s var(--ease), color 0.2s;
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+  font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+  font-size: 1.4rem;
+  color: var(--grey);
 
-  svg { animation: bounce-y 2.4s ease-in-out 1.5s infinite; }
-  &:hover { color: var(--grey); }
+  &[lang='ar'] { font-family: 'Playpen Sans Arabic', 'Caveat', cursive; font-size: 1.05rem; }
+  svg { animation: bounce-y 2.4s ease-in-out infinite; }
 }
 
-/* ── reveal on load ── */
-.hero.loaded {
-  .stats, .headline, .subtitle { opacity: 1; transform: translateY(0); }
-  .scroll-down { opacity: 1; }
+/* ── STICKERS: playful extras around the docked portrait ── */
+.stickers {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  color: var(--ink);
+  opacity: var(--r);
+  --pop: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  .hero-right {
-    opacity: 1;
-    transform: translateX(0);
+  > * { position: absolute; }
+  .draw path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 0.25s ease; vector-effect: non-scaling-stroke; }
+}
+.details-in .stickers .draw path { stroke-dashoffset: 0; transition: stroke-dashoffset 0.9s var(--out, ease-out) 1.2s; }
 
-    &::before, &::after {
-      opacity: 1;
-      transform: translate(0, 0);
-    }
+/* speech bubble with a tail, like a comic caption */
+.stickers .bubble {
+  left: 53%;
+  top: 17%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.75rem 1.1rem 0.8rem;
+  border: 2px solid var(--ink);
+  border-radius: 26px 26px 26px 6px;
+  background: var(--bg);
+  font-size: 1.3rem;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  rotate: -3deg;
+  scale: 0.4;
+  opacity: 0;
+  transform-origin: 10% 100%;
+  transition: scale 0.3s ease, opacity 0.2s ease;
+  i { font-style: normal; color: var(--brand); }
+}
+.details-in .stickers .bubble { scale: 1; opacity: 1; transition: scale 0.7s var(--pop) 0.9s, opacity 0.3s ease 0.9s; }
+.stickers .bubble-arrow { left: 55%; top: calc(17% + 108px); width: 56px; color: var(--brand); }
+.stickers .sparks { left: 66%; top: calc(17% - 50px); width: 44px; color: var(--brand); }
+
+/* starburst sticker */
+.stickers .burst {
+  left: 52.5%;
+  bottom: 11%;
+  width: 118px;
+  height: 118px;
+  display: grid;
+  place-items: center;
+  rotate: -12deg;
+  scale: 0;
+  transition: scale 0.3s ease;
+  svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; path { fill: var(--brand); stroke: var(--ink); stroke-width: 2px; stroke-linejoin: round; } }
+  span { position: relative; font-size: 1.28rem; line-height: 0.95; text-align: center; text-transform: uppercase; color: #fff; }
+}
+:host-context([data-theme='dark']) .stickers .burst span { color: #0e0e0e; }
+.details-in .stickers .burst { scale: 1; transition: scale 0.8s var(--pop) 1.3s; animation: bob 4.5s ease-in-out 2.4s infinite alternate; }
+
+.stickers .pencil-doodle { right: 5.5%; top: 15%; width: 54px; rotate: 24deg; }
+.stickers .squiggle { right: 4.5%; top: 44%; width: 66px; color: var(--brand); }
+
+@keyframes bob { from { translate: 0 -4px; rotate: -12deg; } to { translate: 0 5px; rotate: -8deg; } }
+
+/* phones and small laptops: the portrait fills most of the screen, so the stickers would crowd it */
+@media (max-width: 1100px) { .stickers { display: none; } }
+
+/* ── DETAILS (left half) ──
+   Bold bordered cards + hand-lettered headline, in this site's pastel palette.
+   Entry is a time-based, staggered sequence (class .details-in, toggled from scroll progress) so it
+   springs and overshoots; it plays in reverse when you scroll back up. */
+.hero-left {
+  --pill-blue: rgba(150, 205, 255, 0.6);
+  --pill-purple: rgba(190, 160, 255, 0.55);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: absolute;
+  inset: 0 50% 0 0;
+  display: flex;
+  align-items: center;
+  padding: 5.5rem 1.5rem 2.5rem 4rem;
+}
+:host-context([data-theme='dark']) .hero-left {
+  --pill-blue: rgba(110, 170, 240, 0.42);
+  --pill-purple: rgba(160, 130, 240, 0.45);
+}
+/* invisible until revealed, so it can't steal clicks while the welcome is showing */
+.stage:not(.past-welcome) .hero-left { pointer-events: none; }
+
+.hero-content {
+  width: 100%;
+  max-width: 40rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* block-level entrance: fade + rise, staggered by --k (fast on the way out, staggered on the way in) */
+.r {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.details-in .r {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.7s var(--out), transform 0.8s var(--out);
+  transition-delay: calc(var(--k, 0) * 110ms);
+}
+
+.label {
+  margin: 0;
+  font-family: 'SF Mono', 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--grey);
+}
+
+.label i { font-style: normal; color: var(--brand); }
+
+.headline {
+  position: relative;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: clamp(24px, 2.6vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.18;
+  text-wrap: balance;
+  -webkit-font-smoothing: antialiased;
+  font-kerning: normal;
+}
+
+/* each line slides up out of a mask */
+.row {
+  display: block;
+  overflow: hidden;
+  padding: 0.14em 0.7em 0.2em 0.1em;
+  margin: -0.14em -0.7em -0.2em -0.1em;
+}
+.in {
+  display: inline-block;
+  transform: translateY(115%);
+  transition: transform 0.3s ease;
+}
+.details-in .in {
+  transform: none;
+  transition: transform 0.9s var(--out);
+  transition-delay: calc(0.3s + var(--ri, 0) * 0.14s);
+}
+
+/* pastel pill tags with an ink border; they pop in with overshoot after their line */
+.pill {
+  display: inline-block;
+  padding: 0.06em 0.5em 0.14em;
+  border: 1.5px solid var(--ink);
+  border-radius: 0.4em;
+  line-height: 1.05;
+  scale: 0.55;
+  rotate: -8deg;
+  opacity: 0;
+  transition: scale 0.3s ease, rotate 0.3s ease, opacity 0.2s ease;
+
+  color: var(--ink);
+  &.name { font-size: 1.8em; font-weight: 800; letter-spacing: -0.04em; word-spacing: 0.06em; background: var(--pill-blue); }
+  &.word { font-weight: 700; background: var(--pill-purple); margin-left: 0.1em; }
+}
+.details-in .pill {
+  scale: 1;
+  rotate: 0deg;
+  opacity: 1;
+  transition: scale 0.7s var(--spring), rotate 0.7s var(--spring), opacity 0.25s ease;
+  transition-delay: calc(0.5s + var(--ri, 0) * 0.14s);
+}
+.row:nth-child(1) .pill { transition-delay: 0.45s; }
+.row:nth-child(3) .pill { transition-delay: 0.9s; }
+
+/* big hand-lettered headline lines: chunky handwriting, like a sign-painter's brush */
+.row.big {
+  font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+  font-size: clamp(54px, 5.7vw, 92px);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  line-height: 0.95;
+  color: var(--ink);
+  -webkit-text-stroke: 0.028em currentColor;   /* fattens the handwriting into a chunky brush */
+  paint-order: stroke fill;
+}
+.row.big + .row.big { margin-top: -0.2em; }
+/* the accent word: violet lettering with a brush swoosh drawn under it */
+.pill.word {
+  position: relative;
+  padding: 0 0.04em 0.16em;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--brand);
+  scale: 1;
+  rotate: -2deg;
+  margin-left: 0;
+  .swoosh {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.02em;
+    width: 100%;
+    height: 0.2em;
+    overflow: visible;
+    path { fill: none; stroke: var(--brand); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; vector-effect: non-scaling-stroke; transition: stroke-dashoffset 0.2s ease; }
   }
 }
+.details-in .pill.word .swoosh path { stroke-dashoffset: 0; transition: stroke-dashoffset 0.9s var(--out) 1.5s; }
 
-/* ── RIGHT ── */
-.hero-right {
-  width: 50%;
-  background: var(--tint);
-  overflow: hidden;
+/* the small clean sentence under the headline */
+.sub {
+  margin: -0.4rem 0 0;
+  max-width: 31rem;
+  font-size: clamp(1rem, 1.15vw, 1.15rem);
+  font-weight: 450;
+  line-height: 1.7;
+  letter-spacing: -0.005em;
+  color: var(--grey);
+}
+
+.cta { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; }
+.or { font-size: 1.5rem; color: var(--grey); rotate: -4deg; }
+@media (max-width: 480px) { .or { display: none; } }
+
+/* hand-drawn circle around part of the headline, drawn after the line lands */
+.circ {
   position: relative;
-  opacity: 0;
-  transform: translateX(40px);
-  transition: opacity 0.9s 0.15s var(--ease), transform 0.9s 0.15s var(--ease);
+  display: inline-block;
+  padding: 0 0.12em;
+  .circ-svg {
+    position: absolute;
+    inset: -0.34em -0.28em -0.3em -0.28em;
+    width: calc(100% + 0.56em);
+    height: calc(100% + 0.64em);
+    overflow: visible;
+    pointer-events: none;
+    path { fill: none; stroke: var(--brand); stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; vector-effect: non-scaling-stroke; transition: stroke-dashoffset 0.2s ease; }
+  }
+}
+.details-in .circ .circ-svg path { stroke-dashoffset: 0; transition: stroke-dashoffset 1s var(--out) 1.6s; }
+
+.btn-pill, .btn-ghost {
+  font: 650 13px/1 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.25s var(--spring), opacity 0.2s, box-shadow 0.25s;
+  &:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+  svg { transition: transform 0.3s var(--spring); }
+}
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 1rem 1.7rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  &:hover { transform: translateY(-2px); box-shadow: 0 10px 22px -10px color-mix(in srgb, var(--ink) 60%, transparent); }
+  &:hover svg { transform: translateX(4px); }
+  &:active { transform: translateY(0) scale(0.98); }
+}
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+
+  .dotc {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border: 1.5px solid var(--ink);
+    border-radius: 50%;
+    background: var(--pill-purple);
+    transition: transform 0.35s var(--spring), background 0.2s;
+  }
+  &:hover .dotc { transform: rotate(-12deg) scale(1.12); background: var(--pill-blue); }
+}
+
+.statcard {
+  rotate: -1.2deg;
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+  padding: 1.25rem 1.7rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 22px;
+  background: var(--bg);
+  transition: transform 0.35s var(--spring), box-shadow 0.35s;
+
+  &:hover { transform: translateY(-3px); box-shadow: 0 16px 32px -18px color-mix(in srgb, var(--ink) 55%, transparent); }
+
+  .stat {
+    b {
+      display: block;
+      min-width: 3.2ch;
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.055em;
+      line-height: 1.02;
+      font-variant-numeric: tabular-nums;
+    }
+    span {
+      display: block;
+      margin-top: 0.25rem;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--grey);
+    }
+  }
+  .vr { width: 1px; height: 3rem; background: color-mix(in srgb, var(--ink) 20%, transparent); }
+
+  .avatars {
+    margin-left: auto;
+    display: flex;
+    span {
+      width: 42px;
+      height: 42px;
+      margin-left: -8px;
+      display: grid;
+      place-items: center;
+      border: 1.5px solid var(--ink);
+      border-radius: 50%;
+      font: 700 12px/1 'Inter', -apple-system, sans-serif;
+      color: var(--ink);
+      scale: 0;
+      transition: scale 0.2s ease, margin 0.35s var(--spring);
+      &:nth-child(1) { margin-left: 0; background: var(--pill-blue); }
+      &:nth-child(2) { background: var(--pill-purple); }
+      &:nth-child(3) { background: var(--bg); }
+    }
+  }
+  /* badges pop in one by one, then fan out slightly on hover */
+  &:hover .avatars span:nth-child(n + 2) { margin-left: 3px; }
+}
+.details-in .statcard .avatars span {
+  scale: 1;
+  transition: scale 0.6s var(--spring), margin 0.35s var(--spring);
+  &:nth-child(1) { transition-delay: 0.85s, 0s; }
+  &:nth-child(2) { transition-delay: 0.97s, 0s; }
+  &:nth-child(3) { transition-delay: 1.09s, 0s; }
+}
+
+.foot {
+  margin: 0;
+  padding-top: 1.2rem;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--grey);
+}
+
+/* ── PHOTO: interpolates from a centered card to the right half ── */
+.hero-right {
+  position: absolute;
+  z-index: 2;
+  width: calc(var(--w0) + (50% - var(--w0)) * var(--e));
+  height: calc(var(--h0) + (100% - var(--h0)) * var(--e));
+  left: calc((50% - var(--w0) / 2) * (1 - var(--e)) + 50% * var(--e));
+  top: calc((50% - var(--h0) / 2 + 2vh) * (1 - var(--e)));
+  /* no backdrop: the cutout sits directly on the page */
+  background: transparent;
+  overflow: hidden;
   cursor: crosshair;
+  opacity: 0;
+  transition: opacity 0.9s 0.15s var(--ease);
+  border-radius: 0;
+  /* the photo is cropped at the shoulders: dissolve the bottom and side edges into the page */
+  -webkit-mask-image:
+    linear-gradient(to bottom, #000 calc(58% + 16% * var(--e)), transparent calc(90% + 10% * var(--e))),
+    linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
+  mask-image:
+    linear-gradient(to bottom, #000 calc(58% + 16% * var(--e)), transparent calc(90% + 10% * var(--e))),
+    linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  /* roams the white space: percentages are of the photo's own size */
+  transform:
+    translate(calc(var(--tx) * 140% * var(--m)), calc(var(--ty) * 40% * var(--m)))
+    rotate(calc(var(--tx) * 3deg * var(--m)));
+  will-change: transform;
 
   &::before,
   &::after {
     content: '';
     position: absolute;
     z-index: 2;
+    width: 3rem;
+    height: 3rem;
     pointer-events: none;
+    opacity: var(--r);
   }
 
   &::before {
     top: 2rem;
     left: 2rem;
-    width: 3rem;
-    height: 3rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.45);
-    border-left: 1px solid rgba(255, 255, 255, 0.45);
-    opacity: 0;
-    transform: translate(-8px, -8px);
-    transition: opacity 0.6s 0.9s var(--ease), transform 0.6s 0.9s var(--ease);
+    border-top: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+    border-left: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
   }
 
   &::after {
     bottom: 2rem;
     right: 2rem;
-    width: 3rem;
-    height: 3rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.45);
-    border-right: 1px solid rgba(255, 255, 255, 0.45);
-    opacity: 0;
-    transform: translate(8px, 8px);
-    transition: opacity 0.6s 0.9s var(--ease), transform 0.6s 0.9s var(--ease);
+    border-bottom: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+    border-right: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
   }
 
   .img-wrap {
@@ -189,11 +692,28 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center top;
+    object-position: center 8%;   /* keeps the whole face in frame when the box gets short and wide */
     display: block;
   }
 
-  .img-bw { filter: grayscale(1) contrast(1.25); }
+  /* the photo fades in under the pencil sketch once it has been drawn */
+  .img-wrap img { opacity: 0; transition: opacity 1.6s ease; }
+  .img-wrap.drawn img { opacity: 1; }
+
+  .sketch {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity 1.6s ease 0.2s;
+    /* white paper drops out, leaving only the graphite */
+    mix-blend-mode: multiply;
+  }
+  .img-wrap.drawn .sketch { opacity: 0; }
+
+  .img-bw { filter: grayscale(1); }
 
   .img-color {
     filter: contrast(1.05) brightness(1.05);
@@ -203,6 +723,8 @@
     &.active { clip-path: circle(140px at var(--mx, 50%) var(--my, 50%)); }
   }
 }
+
+.hero.loaded .hero-right { opacity: 1; }
 
 /* ── animations ── */
 @keyframes bounce-y {
@@ -215,13 +737,90 @@
   50%       { transform: scale(1.04) translateY(-10px); }
 }
 
-/* ── responsive ── */
+/* ── responsive: photo glides to the top, details sit below ── */
+/* small laptops and landscape tablets: the details column is only ~460px, so tighten it */
+@media (max-width: 1180px) and (min-width: 769px) {
+  .hero-left { padding: 5rem 1rem 2rem 2rem; }
+  .hero-content { gap: 1.4rem; }
+  .headline { font-size: clamp(22px, 2.9vw, 30px); }
+  .row.big { font-size: clamp(46px, 6.2vw, 64px); }
+  .statcard { gap: 1rem; padding: 1rem 1.1rem; flex-wrap: wrap; }
+  .statcard .stat b { font-size: 2rem; }
+  .statcard .stat span { letter-spacing: 0.08em; }
+  .statcard .vr { display: none; }
+  .statcard .avatars { margin-left: 0; }
+  .cta { gap: 1.1rem; flex-wrap: wrap; }
+  .foot { display: none; }
+}
+
+/* short landscape screens (phones turned sideways): everything has to fit in ~330px of height */
+@media (max-height: 560px) and (min-width: 769px) {
+  .stage { --w0: 130px; --h0: 168px; }
+  .doodles, .trail { display: none; }
+  .welcome { top: 3.6rem; }
+  .hello.top { font-size: 24px; }
+  .hello.bottom { font-size: 30px; }
+  .below { bottom: 1.2vh; }
+  .langs { margin-top: 0.3rem; }
+  .cue { display: none; }
+  .hero-left { padding: 3.6rem 1rem 0.8rem 2rem; }
+  .hero-content { gap: 0.7rem; }
+  .label { display: none; }
+  .headline { font-size: 21px; gap: 0.1rem; }
+  .row.big { font-size: 38px; }
+  .sub { font-size: 0.9rem; line-height: 1.45; }
+  .pill.name { font-size: 1.45em; }
+  .cta { gap: 1rem; }
+  .btn-pill { padding: 0.7rem 1.2rem; }
+  .statcard { padding: 0.6rem 0.9rem; gap: 0.8rem; }
+  .statcard .stat b { font-size: 1.5rem; }
+  .statcard .avatars { display: none; }
+  .foot { display: none; }
+}
+
 @media (max-width: 768px) {
-  .hero { flex-direction: column; }
-  .hero-left, .hero-right { width: 100%; }
-  .hero-right { min-height: 300px; order: -1; }
-  .hero-left { padding-top: 2.5rem; }
-  .hero-content { padding: 0 2rem; }
-  .accents { display: none; }
-  .scroll-down { display: none; }
+  .stage { --h0: min(380px, 46%); }
+  .hero-right { transform: translate(calc(var(--tx) * 18% * var(--m)), calc(var(--ty) * 25% * var(--m))); }
+
+  .hero-right {
+    width: calc(var(--w0) + (100% - var(--w0)) * var(--e));
+    height: calc(var(--h0) + (44% - var(--h0)) * var(--e));
+    left: calc((50% - var(--w0) / 2) * (1 - var(--e)));
+    top: calc((50% - var(--h0) / 2 + 2vh) * (1 - var(--e)));
+  }
+
+  .hero-left { inset: 44% 0 0 0; padding: 1rem 1.5rem 1.5rem; align-items: flex-start; }
+  .hero-content { gap: 1rem; }
+  .headline { font-size: clamp(20px, 5.6vw, 26px); }
+  .row.big { font-size: clamp(38px, 11.5vw, 50px); }
+  .sub { font-size: 0.9rem; line-height: 1.5; margin-top: -0.3rem; }
+  .label { display: none; }                 /* the headline already says it; saves a line */
+  .hero-content { gap: 0.7rem; }
+  .statcard .avatars { display: none; }
+  .btn-pill, .btn-ghost { white-space: nowrap; }
+  .btn-pill { padding: 0.85rem 1.2rem; font-size: 12.5px; }
+  .cta { gap: 1.1rem; }
+  .statcard .stat b { font-size: 1.9rem; }
+  .statcard { padding: 0.8rem 1rem; gap: 0.9rem 1rem; flex-wrap: wrap; }
+  .statcard .stat { flex: 1 1 40%; }
+  .statcard .vr { display: none; }
+  .statcard .avatars { margin-left: 0; }
+  .foot { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stickers .bubble, .stickers .burst { scale: 1; opacity: 1; transition: none; animation: none; }
+  .stickers .draw path, .circ .circ-svg path { stroke-dashoffset: 0; transition: none; }
+  .hero-left .r, .hero-left .in, .hero-left .pill, .hero-left .swoosh path, .hero-left .avatars span {
+    opacity: 1; transform: none; scale: 1; rotate: 0deg; stroke-dashoffset: 0; transition: none !important;
+  }
+  .hero { height: auto; }
+  .stage { position: relative; min-height: 100vh; }
+  .welcome, .trail { display: none; }
+  .draw path { transition: none; stroke-dashoffset: 0; }
+  .mark { transition: none; opacity: 1; }
+  .mark { background-size: 100% 62%; }
+  .hero-right { transition: none; transform: none; }
+  .hero-right .img-wrap img { opacity: 1; transition: none; }
+  .hero-right .sketch { display: none; }
 }

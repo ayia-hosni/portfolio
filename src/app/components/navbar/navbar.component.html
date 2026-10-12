@@ -1,44 +1,68 @@
-<nav [class.scrolled]="scrolled()">
-  <div class="logo" aria-label="logo">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-    </svg>
-  </div>
-
-  <div class="nav-center">
-    <div class="nav-links">
-      <a (click)="scrollTo('about')">About</a>
-      <a (click)="scrollTo('work')">Projects</a>
-      <a (click)="scrollTo('stack')">Stack</a>
-      <a (click)="scrollTo('contact')">Contact</a>
-    </div>
-
-    <div class="avail-badge">
-      <span class="dot"></span>
-      Available
-    </div>
-  </div>
-
-  <div class="nav-actions">
-    <button class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="dark() ? 'Switch to light' : 'Switch to dark'">
-      @if (!dark()) {
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/>
-          <path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/>
-          <path d="M2 12h2"/><path d="M20 12h2"/>
-          <path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
-        </svg>
-      } @else {
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-        </svg>
-      }
-    </button>
-    <button class="cta" (click)="scrollTo('contact')">
-      Get In Touch
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M7 7h10v10"/><path d="M7 17 17 7"/>
+<header class="bar" [class.scrolled]="scrolled()" [class.open]="open()">
+  <nav class="pill" aria-label="Main">
+    <a class="logo" href="#top" (click)="go($event, 'top')" aria-label="Aya Hosni, back to the top">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
       </svg>
-    </button>
+      <span class="word">Aya</span>
+    </a>
+
+    <ul class="links" #linksEl>
+      @for (l of links; track l.id) {
+        <li>
+          <a [href]="'#' + l.id" [class.active]="active() === l.id" [attr.aria-current]="active() === l.id ? 'true' : null" (click)="go($event, l.id)">{{ l.label }}</a>
+        </li>
+      }
+      <!-- sliding highlighter behind the active link -->
+      <li class="ind" aria-hidden="true" [class.on]="indOn()" [style.--x]="indX() + 'px'" [style.--w]="indW() + 'px'"></li>
+    </ul>
+
+    <div class="actions">
+      <button type="button" class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="dark() ? 'Switch to light mode' : 'Switch to dark mode'">
+        @if (!dark()) {
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/>
+            <path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/>
+            <path d="M2 12h2"/><path d="M20 12h2"/>
+            <path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+          </svg>
+        } @else {
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+          </svg>
+        }
+      </button>
+
+      <a class="cta" href="#contact" (click)="go($event, 'contact')">
+        Let's talk
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+      </a>
+
+      <button type="button" class="burger" (click)="toggleMenu()" [attr.aria-expanded]="open()" aria-controls="mobile-menu" [attr.aria-label]="open() ? 'Close menu' : 'Open menu'">
+        <i></i><i></i>
+      </button>
+    </div>
+
+    <!-- pencil progress line along the bottom edge: fills as you read down the page -->
+    <span class="progress" aria-hidden="true"></span>
+  </nav>
+
+  <!-- phones: the links open as a card under the pill -->
+  <div class="panel" id="mobile-menu" [class.show]="open()" [attr.aria-hidden]="!open()" [attr.inert]="open() ? null : ''">
+    <ul>
+      @for (l of links; track l.id; let i = $index) {
+        <li [style.--i]="i">
+          <a [href]="'#' + l.id" [class.active]="active() === l.id" (click)="go($event, l.id)">
+            <span class="n">{{ '0' + (i + 1) }}</span>
+            <span class="t">{{ l.label }}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+          </a>
+        </li>
+      }
+    </ul>
+    <a class="cta full" href="#contact" (click)="go($event, 'contact')" [style.--i]="links.length">
+      Let's talk
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+    </a>
   </div>
-</nav>
+</header>

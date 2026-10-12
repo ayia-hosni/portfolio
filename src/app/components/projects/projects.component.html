@@ -1,30 +1,118 @@
 <section class="ds" id="work">
   <div class="proj-head">
     <div>
-      <p class="eyebrow reveal" appReveal><span class="dot">●</span> Selected work</p>
-      <h2 class="ds-title reveal delay-1" appReveal>Projects</h2>
+      <p class="label reveal" appReveal>[ Selected work ]</p>
+      <h2 class="title reveal delay-1" appReveal>
+        Projects
+        <svg class="under" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M4 8 C40 2 70 13 110 7 S190 2 230 8 S280 12 296 5" /></svg>
+      </h2>
+    </div>
+
+    <div class="aside reveal delay-2" appReveal>
+      <div class="count"><b>{{ '0' + projects.length }}</b><span>projects</span></div>
+      <p class="note" aria-hidden="true">
+        real systems, real traffic
+      </p>
     </div>
   </div>
 
   <div class="projects">
     @for (p of projects; track p.num; let i = $index) {
-      <article class="project reveal" appReveal [class]="'reveal delay-' + (i + 1)">
-        <span class="num mono">{{ p.num }}</span>
-        <div class="body">
-          <div class="title-row">
-            <span class="logo-tile">
-              <img class="logo" [src]="p.logo" [alt]="p.title + ' logo'" />
-            </span>
-            <h4>{{ p.title }}</h4>
-          </div>
-          <p>{{ p.desc }}</p>
-          <div class="stack">
-            @for (tag of p.stack; track tag) {
-              <span>{{ tag }}</span>
-            }
+      @if (p.architectureDiagrams?.length) {
+        <!-- tall track: the card pins to the screen and its content turns into the diagram slides as you scroll -->
+        <div class="pin" #pin [style.--steps]="p.architectureDiagrams!.length + 1">
+          <div class="pin-stick" #stick>
+            <ng-container *ngTemplateOutlet="cardTpl; context: { $implicit: p, i: i, story: true }" />
           </div>
         </div>
-      </article>
+      } @else {
+        <ng-container *ngTemplateOutlet="cardTpl; context: { $implicit: p, i: i, story: false }" />
+      }
     }
   </div>
 </section>
+
+<ng-template #cardTpl let-p let-i="i" let-story="story">
+      <article class="card" appReveal [class]="'card reveal delay-' + (i + 1) + (story ? ' story-card' : '')" [attr.data-tone]="i % 3">
+    <div class="panel">
+      <span class="num">{{ p.num }}</span>
+      <span class="logo-tile">
+        <img class="logo" [src]="p.logo" [alt]="p.title + ' logo'" />
+      </span>
+      <i class="diamond" aria-hidden="true"></i>
+    </div>
+
+    <div class="body" [class.layers]="story">
+      <div class="intro-layer" [class.has-sketch]="p.architectureDiagrams?.length" [class.out]="story && step() >= 0">
+      <div class="copy">
+      <h3>{{ p.title }}</h3>
+      <p>{{ p.desc }}</p>
+
+      @if (p.highlights?.length) {
+        <ul class="facts">
+          @for (h of p.highlights; track h.label) {
+            <li><b>{{ h.value }}</b><span>{{ h.label }}</span></li>
+          }
+        </ul>
+      }
+
+      <ul class="chips">
+        @for (tag of p.stack; track tag) {
+          <li>{{ tag }}</li>
+        }
+      </ul>
+
+      @if (p.architectureDiagrams?.length) {
+        <button type="button" class="btn-pill" (click)="jumpTo(0)">
+          View architecture
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+        </button>
+      }
+      </div>
+
+      @if (p.architectureDiagrams?.length) {
+        <figure class="sketch" aria-hidden="true">
+          <svg viewBox="0 0 400 214" fill="none">
+            <circle class="ln fb" pathLength="1" cx="24" cy="100" r="12" />
+            <text class="lbl fade" x="24" y="134">client</text>
+            <path class="ln" pathLength="1" d="M38 100 H68 M62 95 L68 100 L62 105" />
+            <rect class="ln fp" pathLength="1" x="70" y="78" width="58" height="44" rx="10" />
+            <text class="lbl fade" x="99" y="105">ingress</text>
+            <path class="ln na" pathLength="1" d="M99 62 V74 M95 69 L99 75 L103 69" />
+            <text class="lbl note fade" x="99" y="52">REST + GraphQL</text>
+            <path class="ln" pathLength="1" d="M128 100 H160 M154 95 L160 100 L154 105" />
+
+            <rect class="bd fade" x="162" y="18" width="150" height="150" rx="16" />
+            <rect class="ln fb" pathLength="1" x="176" y="32" width="34" height="34" rx="8" />
+            <rect class="ln fp" pathLength="1" x="220" y="32" width="34" height="34" rx="8" />
+            <rect class="ln fb" pathLength="1" x="264" y="32" width="34" height="34" rx="8" />
+            <rect class="ln fp" pathLength="1" x="176" y="76" width="34" height="34" rx="8" />
+            <rect class="ln fb" pathLength="1" x="220" y="76" width="34" height="34" rx="8" />
+            <rect class="ln fp" pathLength="1" x="264" y="76" width="34" height="34" rx="8" />
+            <rect class="ln fb" pathLength="1" x="176" y="120" width="34" height="34" rx="8" />
+            <rect class="ln fp" pathLength="1" x="220" y="120" width="34" height="34" rx="8" />
+            <rect class="ln fb" pathLength="1" x="264" y="120" width="34" height="34" rx="8" />
+            <text class="lbl fade" x="237" y="192">9 services · Kubernetes</text>
+
+            <path class="ln" pathLength="1" d="M312 93 H340 M334 88 L340 93 L334 98" />
+            <rect class="bd fade" x="342" y="62" width="52" height="62" rx="12" />
+            <rect class="ln fp" pathLength="1" x="350" y="70" width="36" height="12" rx="4" />
+            <rect class="ln fb" pathLength="1" x="350" y="87" width="36" height="12" rx="4" />
+            <rect class="ln fp" pathLength="1" x="350" y="104" width="36" height="12" rx="4" />
+            <text class="lbl fade" x="368" y="148">Kafka</text>
+            <text class="lbl note fade" x="352" y="40">events</text>
+            <path class="ln na" pathLength="1" d="M368 46 V58 M364 53 L368 59 L372 53" />
+          </svg>
+        </figure>
+      }
+      </div>
+
+      @if (story) {
+        <div class="story-layer" [class.in]="step() >= 0">
+          <app-architecture-story [title]="p.title" [diagrams]="p.architectureDiagrams ?? []"
+                                  [active]="step()" [armed]="armed()" (jump)="jumpTo($event)" />
+        </div>
+      }
+    </div>
+  </article>
+</ng-template>

@@ -1,0 +1,81 @@
+<div class="grid" [attr.aria-label]="'Architecture of ' + title">
+
+      <!-- left: the diagrams as a timeline (pencil line, numbered markers, highlighter on the active one) -->
+      <ol class="steps">
+        @for (d of diagrams; track d.id; let i = $index) {
+          <li class="step" [attr.data-i]="i" [class.active]="isOn(i)" [class.done]="staticMode() ? seen().has(i + 1) : i < activeIdx()">
+            <span class="marker" aria-hidden="true">
+              <span class="num">
+                <svg class="circle" viewBox="0 0 40 28"><path pathLength="1" d="M21 3 C32 2 38 8 37 14 C36 22 27 26 18 26 C8 26 2 20 3 12 C4 5 13 1 24 4" /></svg>
+                {{ pad(i + 1) }}
+              </span>
+              <span class="pin"><i class="dot"></i></span>
+            </span>
+
+            <div class="body">
+              <button class="heading" type="button" [attr.aria-expanded]="i === activeIdx()" (click)="goTo(i)">
+                <span class="hl">{{ d.title }}</span>
+              </button>
+              <div class="content">
+                <div class="inner"><p>{{ d.summary }}</p></div>
+              </div>
+
+              <!-- phones and reduced motion: each diagram sits inside its step -->
+              @if (staticMode()) {
+                <div class="inline-canvas">
+                  @if (svgs()[d.id]; as svg) {
+                    <div class="mermaid-output" [innerHTML]="svg"></div>
+                  } @else if (failed()[d.id]) {
+                    <p class="state">Couldn't render this diagram.</p>
+                  } @else {
+                    <p class="state"><span class="dots"><i></i><i></i><i></i></span>Drawing diagram</p>
+                  }
+                </div>
+              }
+            </div>
+          </li>
+        }
+      </ol>
+
+      <!-- right: counter, pencil progress and the diagram on sketch paper -->
+      <div class="view">
+        <div class="view-head">
+          <div class="who">
+            <p class="label"><i>[</i> Architecture <i>]</i></p>
+            <h3>{{ title }}</h3>
+          </div>
+          <div class="prog" aria-hidden="true">
+            <div class="counter">
+              @for (n of [activeIdx()]; track n) { <b class="pencil sketchy">{{ pad(n + 1) }}</b> }
+              <span>/ {{ pad(diagrams.length) }}</span>
+            </div>
+            <svg class="bar" viewBox="0 0 176 10" [style.--p]="(activeIdx() + 1) / diagrams.length">
+              <path class="track" pathLength="1" d="M3 6 C20 2 38 9 58 5 S96 2 116 6 S156 9 173 4" />
+              <path class="fill" pathLength="1" d="M3 6 C20 2 38 9 58 5 S96 2 116 6 S156 9 173 4" />
+            </svg>
+          </div>
+        </div>
+
+        <div class="canvas" [class.zoomed]="zoom() > 1"
+             (pointerdown)="onPanStart($event)" (pointermove)="onPanMove($event)" (pointerup)="onPanEnd($event)" (pointercancel)="onPanEnd($event)">
+          <div class="zoombar" (pointerdown)="$event.stopPropagation()">
+            <button type="button" (click)="zoomOut()" [disabled]="zoom() <= 1" aria-label="Zoom out"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+            <button type="button" class="fit" (click)="zoomFit()">{{ zoom() === 1 ? 'Fit' : (zoom() * 100) + '%' }}</button>
+            <button type="button" (click)="zoomIn()" [disabled]="zoom() >= maxZoom" aria-label="Zoom in"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+
+          @for (k of [activeIdx()]; track k) {
+            @if (svgs()[diagrams[k].id]; as svg) {
+              <div class="mermaid-output" [class.zoomed]="zoom() > 1" [style.--z]="zoom()" [innerHTML]="svg"></div>
+            } @else if (failed()[diagrams[k].id]) {
+              <p class="state">Couldn't render this diagram.</p>
+            } @else {
+              <p class="state"><span class="dots"><i></i><i></i><i></i></span>Drawing diagram</p>
+            }
+          }
+        </div>
+
+        <p class="hint" aria-hidden="true">scroll to move through the diagrams</p>
+      </div>
+
+</div>

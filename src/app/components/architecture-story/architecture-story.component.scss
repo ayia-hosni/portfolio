@@ -1,0 +1,419 @@
+:host {
+  display: block;
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --alt: #e1d6ff;
+}
+:host-context([data-theme='dark']) { --alt: #4b3b7c; }
+
+@property --fs {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 20px;
+}
+
+/* ── fills the card's story layer ── */
+.grid {
+  width: 100%;
+  height: 100%;
+  padding: 1.25rem 1.5rem 1.1rem 1.25rem;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+  column-gap: 1rem;
+  align-items: start;
+}
+
+/* ── left: timeline of diagrams ── */
+.steps {
+  --line-x: 2.6rem;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  align-self: start;
+  margin-top: 0.5rem;   /* top-anchored, so opening a summary never shifts the items above it */
+}
+
+.step {
+  --fs: 13px;
+  --hl: rgba(120, 180, 255, 0.5);
+  position: relative;
+  display: grid;
+  grid-template-columns: 3.4rem minmax(0, 1fr);
+  column-gap: 0.8rem;
+  align-items: start;
+  transition: --fs 0.45s var(--ease);
+
+  &.active { --fs: 17px; }
+  &:nth-child(even) { --hl: rgba(160, 130, 255, 0.5); }
+
+  /* hand-drawn timeline: faint wobbly segment per row, inked darker once passed */
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    left: calc(var(--line-x) - 7px);
+    top: 0;
+    bottom: -0.35rem;
+    width: 14px;
+    pointer-events: none;
+    background: linear-gradient(to right, transparent 6.25px, var(--seg, rgba(0, 0, 0, 0.2)) 6.25px 7.75px, transparent 7.75px);
+    filter: url(#wobble);
+  }
+  &::before { --seg: color-mix(in srgb, var(--ink) 18%, transparent); }
+  &::after  { --seg: color-mix(in srgb, var(--ink) 75%, transparent); opacity: 0; transition: opacity 0.5s var(--ease); }
+  &.done::after { opacity: 1; }
+  &:first-child::before, &:first-child::after { top: calc(var(--fs) * 0.7); }
+  &:last-child::before,  &:last-child::after  { bottom: auto; height: calc(var(--fs) * 0.7); }
+}
+
+.marker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: calc(var(--fs) * 1.4);
+  gap: 0.8rem;
+
+  .num {
+    position: relative;
+    width: 1.8rem;
+    text-align: right;
+    font-family: 'SF Mono', 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    font-size: 11px;
+    color: var(--grey);
+    transition: color 0.3s;
+  }
+  .circle {
+    position: absolute;
+    right: -0.6rem;
+    top: 50%;
+    width: 2.5rem;
+    height: 1.8rem;
+    translate: 0 -50%;
+    overflow: visible;
+    pointer-events: none;
+    path {
+      fill: none;
+      stroke: var(--brand);
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      transition: stroke-dashoffset 0.6s var(--ease) 0.15s;
+    }
+  }
+  .pin { width: 0.8rem; height: 0.8rem; display: grid; place-items: center; }
+  .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 1.5px solid var(--grey);
+    background: var(--bg);
+    box-sizing: border-box;
+    transition: transform 0.3s var(--ease), background 0.3s, border-color 0.3s;
+  }
+}
+.step.active .marker {
+  .num { color: var(--brand); }
+  .circle path { stroke-dashoffset: 0; }
+  .dot { background: var(--brand); border-color: var(--brand); transform: scale(1.5); }
+}
+
+.body { min-width: 0; }
+
+.heading {
+  all: unset;
+  display: block;
+  box-sizing: border-box;
+  min-height: 28px;
+  cursor: pointer;
+  font-size: var(--fs);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.22;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+  transition: color 0.3s;
+  &:hover { color: color-mix(in srgb, var(--ink) 80%, transparent); }
+  &:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 4px; }
+}
+.step.active .heading { color: var(--ink); font-weight: 700; min-height: 0; letter-spacing: -0.025em; }
+
+.hl {
+  padding: 0 0.15em;
+  margin: 0 -0.15em;
+  background: linear-gradient(104deg, transparent 0.3em, var(--hl) 0.4em, var(--hl) 94%, transparent 99%) 0 90% / 0% 34% no-repeat;
+  transition: background-size 0.7s var(--ease) 0.15s;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.step.active .hl { background-size: 100% 34%; }
+
+.content {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.5s var(--ease), opacity 0.5s var(--ease);
+  .inner { min-height: 0; overflow: hidden; }
+}
+.step.active .content { grid-template-rows: 1fr; opacity: 1; }
+.content p {
+  margin: 0;
+  padding: 0.45rem 0 0.4rem;
+  max-width: 30rem;
+  color: var(--grey);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+}
+
+.inline-canvas { display: none; }
+
+/* ── right: header, counter, canvas ── */
+.view { min-width: 0; height: 100%; display: flex; flex-direction: column; gap: 0.9rem; }
+
+.view-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; flex-shrink: 0; }
+
+.label {
+  margin: 0 0 0.4rem;
+  font-family: 'SF Mono', 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--grey);
+  i { font-style: normal; color: var(--brand); }
+}
+.who h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.prog { flex: none; }
+.counter {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  color: var(--ink);
+
+  b { font-size: 52px; font-weight: 400; line-height: 0.85; font-variant-numeric: tabular-nums; animation: roll 0.5s var(--spring); }
+  span { font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive; font-size: 26px; font-weight: 500; line-height: 1; padding-bottom: 0.25rem; color: var(--grey); }
+}
+@keyframes roll { from { transform: translateY(60%); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.bar {
+  --p: 0.1;
+  display: block;
+  margin: 0.55rem 0 0 auto;
+  width: 7.5rem;
+  height: auto;
+  overflow: visible;
+  path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .track { stroke: color-mix(in srgb, var(--ink) 16%, transparent); stroke-width: 2; }
+  .fill { stroke: var(--brand); stroke-width: 2.6; stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--p)); transition: stroke-dashoffset 0.6s var(--ease); }
+}
+
+/* the diagram sits on dotted sketch paper */
+.canvas {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  overflow: auto;
+  border: 1.5px solid var(--ink);
+  border-radius: 20px;
+  background:
+    radial-gradient(color-mix(in srgb, var(--ink) 14%, transparent) 1px, transparent 1.2px) 0 0 / 22px 22px,
+    var(--bg);
+  padding: 1rem;
+
+  &.zoomed { cursor: grab; align-items: flex-start; &.panning { cursor: grabbing; user-select: none; } }
+}
+
+.state {
+  margin: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: var(--grey);
+  font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+  font-size: 1.5rem;
+  .dots { display: inline-flex; gap: 5px; }
+  .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--brand); animation: bounce 1s ease-in-out infinite; &:nth-child(2) { animation-delay: 0.15s; } &:nth-child(3) { animation-delay: 0.3s; } }
+}
+@keyframes bounce { 0%, 100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-6px); opacity: 1; } }
+
+.mermaid-output {
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: rise 0.5s var(--out) both;
+
+  /* mermaid caps the svg at its natural size: scale it to fill the canvas, keeping the aspect ratio */
+  ::ng-deep svg { width: 100% !important; max-width: none !important; height: 100% !important; max-height: 100%; }
+
+  &.zoomed {
+    width: calc(100% * var(--z, 1));
+    flex: none;
+    justify-content: flex-start;
+    ::ng-deep svg { height: auto !important; max-height: none; }
+  }
+}
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* nodes pop, edges trace, labels fade */
+.mermaid-output ::ng-deep svg {
+  .pop { opacity: 0; transform-box: fill-box; transform-origin: center; scale: 0.82; }
+  .draw { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .fade { opacity: 0; }
+  &.go {
+    .pop { opacity: 1; scale: 1; transition: opacity 0.4s ease var(--d, 0ms), scale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) var(--d, 0ms); }
+    .draw { stroke-dashoffset: 0; transition: stroke-dashoffset 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) var(--d, 0ms); }
+    .fade { opacity: 1; transition: opacity 0.5s ease var(--d, 0ms); }
+  }
+  .node rect, .node polygon, .node circle, .node ellipse, .node path { stroke-width: 1.6px; }
+  .node.alt rect, .node.alt polygon, .node.alt circle, .node.alt ellipse, .node.alt path.basic { fill: var(--alt) !important; }
+  .cluster rect { stroke-dasharray: 5 5; stroke-width: 1.3px; rx: 14; ry: 14; }
+  .flowchart-link { stroke-width: 1.6px; }
+  .edgeLabel, .edgeLabel p, .edgeLabel span { font-size: 12px; }
+}
+
+.zoombar {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.8rem;
+  z-index: 4;
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--bg);
+
+  button {
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.55rem;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink);
+    font: 700 11px/1 'Inter', -apple-system, sans-serif;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    &:hover:not(:disabled) { background: var(--ink); color: var(--bg); }
+    &:disabled { opacity: 0.35; cursor: default; }
+    &:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+  }
+}
+
+.hint {
+  margin: 0;
+  flex-shrink: 0;
+  text-align: right;
+  font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+  font-size: 1.15rem;
+  color: var(--grey);
+}
+
+@media (max-height: 760px) { .hint { display: none; } }
+
+/* ── phones and small tablets in portrait, inside the pinned card ──
+   header + counter, only the active step's title and summary, then the diagram filling the rest */
+@media (max-width: 900px) and (min-height: 521px) {
+  .grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    row-gap: 0.6rem;
+    padding: 0.85rem 0.9rem 0.8rem;
+    align-items: start;
+  }
+  .view { display: contents; }
+  .view-head { order: 1; align-items: center; }
+  .steps { order: 2; margin: 0; align-self: start; }
+  .canvas { order: 3; min-height: 0; align-self: stretch; border-radius: 16px; padding: 0.6rem; }
+  .zoombar { top: auto; bottom: 0.5rem; right: 0.5rem; padding: 3px; button { min-width: 1.75rem; height: 1.75rem; padding: 0 0.4rem; font-size: 10px; } }
+  .hint { display: none; }
+
+  .who .label { margin-bottom: 0.15rem; font-size: 10px; }
+  .who h3 { font-size: 0.95rem; }
+  .counter b { font-size: 40px; }
+  .counter span { font-size: 20px; }
+  .bar { width: 5.5rem; margin-top: 0.3rem; }
+
+  /* the list collapses to just the active step */
+  .step:not(.active) { display: none; }
+  .step { --fs: 18px; grid-template-columns: 2.9rem minmax(0, 1fr); column-gap: 0.7rem; }
+  .step::before, .step::after { display: none; }
+  .content p { font-size: 0.82rem; line-height: 1.5; padding: 0.35rem 0 0; }
+}
+@media (max-width: 900px) and (min-height: 521px) and (max-height: 760px) {
+  .content p { font-size: 0.78rem; line-height: 1.42; }
+  .counter b { font-size: 32px; }
+}
+
+/* ── static layout: phones and reduced motion — every diagram in its own step, no pinning ── */
+@mixin static-layout {
+  :host { height: auto; }
+  .grid { display: block; height: auto; padding: 1.5rem 0 0; }
+  .view { display: none; }
+  .steps { --line-x: 2.4rem; --gap: 2.4rem; gap: var(--gap); margin-top: 0; }
+  .step, .step.active { --fs: clamp(19px, 5.4vw, 24px); grid-template-columns: 2.9rem minmax(0, 1fr); column-gap: 0.8rem; transition: none; }
+  .step::before, .step::after { bottom: calc(var(--gap) * -1); }
+  .marker { gap: 0.5rem; .num { width: 1.45rem; } .circle { right: -0.5rem; width: 2.2rem; height: 1.6rem; } }
+  .heading { cursor: default; color: var(--ink); font-weight: 700; min-height: 0; }
+  .content, .step.active .content { grid-template-rows: 1fr; opacity: 1; transition: none; }
+  .content p { max-width: none; }
+  .inline-canvas {
+    display: flex;
+    margin-top: 1rem;
+    position: relative;
+    z-index: 1;                    /* above the pencil timeline, which runs behind it */
+    margin-left: -3.7rem;          /* the diagram breaks out under the timeline: it needs the full width */
+    min-height: 14rem;
+    overflow-x: auto;
+    border: 1.5px solid var(--ink);
+    border-radius: 20px;
+    padding: 0.75rem;
+    background:
+      radial-gradient(color-mix(in srgb, var(--ink) 14%, transparent) 1px, transparent 1.2px) 0 0 / 22px 22px,
+      var(--bg);
+    .mermaid-output { min-width: 640px; height: auto; ::ng-deep svg { height: auto !important; } }
+  }
+}
+/* very short screens (phones turned sideways): stacked, each step animating as it scrolls into view */
+@media (max-height: 520px) {
+  @include static-layout;
+  .step { opacity: 0; transform: translateY(22px); transition: opacity 0.6s var(--ease), transform 0.7s var(--ease); }
+  .step.active { opacity: 1; transform: none; }
+  .hl { transition: background-size 0.9s var(--ease) 0.3s; }
+  .step.active .hl { background-size: 100% 34%; }
+}
+@media (prefers-reduced-motion: no-preference) and (max-height: 520px) {
+  /* hold the diagram back until its animation starts, so it never flashes in finished and then restarts */
+  .inline-canvas .mermaid-output ::ng-deep svg:not(.go) { visibility: hidden; }
+}
+@media (prefers-reduced-motion: reduce) {
+  @include static-layout;
+  .counter b { animation: none; }
+  .step { opacity: 1; transform: none; transition: none; }
+  .hl { background-size: 100% 34%; transition: none; }
+  .inline-canvas .mermaid-output ::ng-deep svg .pop, .inline-canvas .mermaid-output ::ng-deep svg .draw, .inline-canvas .mermaid-output ::ng-deep svg .fade { opacity: 1; scale: 1; stroke-dashoffset: 0; }
+}
