@@ -893,6 +893,27 @@
 @media (max-width: 640px) {
   .switch .tab small { display: none; }
 }
+/* phones and the narrow foldable cover screen: three tabs share the width, logo above a wrapping label */
+@media (max-width: 560px) {
+  .switch {
+    width: calc(100% - 1.5rem);
+    max-width: 30rem;
+    grid-auto-columns: minmax(0, 1fr);
+    border-radius: 26px;
+    .pill-bg { border-radius: 22px; }
+    .tab {
+      flex-direction: column;
+      gap: 0.3rem;
+      min-width: 0;
+      padding: 0.5rem 0.25rem;
+      white-space: normal;
+      text-align: center;
+      font-size: 11px;
+      line-height: 1.15;
+      border-radius: 22px;
+    }
+  }
+}
 @media (max-width: 480px) {
   .switch { margin-top: 5.6rem; }
   .switch .tab { padding: 0.5rem 0.9rem 0.5rem 0.55rem; font-size: 12px; img { width: 24px; height: 24px; } }

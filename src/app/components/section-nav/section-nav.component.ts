@@ -100,7 +100,7 @@ interface Stop {
         pointer-events: none;
         transition: opacity 0.2s ease, translate 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
       }
-      &:hover .tip, &:focus-visible .tip { opacity: 1; translate: 0 -50%; }
+      &:hover .tip, &:focus-visible .tip, &:active .tip { opacity: 1; translate: 0 -50%; }
     }
 
     .pos {
@@ -118,7 +118,7 @@ interface Stop {
 
     @media (max-width: 700px) {
       .snav {
-        right: 0.5rem;
+        right: calc(0.5rem + env(safe-area-inset-right, 0px));
         bottom: calc(0.7rem + env(safe-area-inset-bottom, 0px));
         gap: 2px;
         padding: 3px;

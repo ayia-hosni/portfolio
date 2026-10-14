@@ -100,7 +100,7 @@
   max-width: 1200px;
   height: 100%;
   margin: 0 auto;
-  padding: clamp(5.5rem, 14vh, 8.5rem) clamp(1.5rem, 5vw, 5rem) 2rem;
+  padding: clamp(6.5rem, 14vh, 8.5rem) clamp(1.5rem, 5vw, 5rem) 2rem;   /* min 6.5rem: clear air under the floating navbar on short screens */
   box-sizing: border-box;
   display: grid;
   grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
@@ -282,6 +282,8 @@
   &:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; border-radius: 4px; }
 }
 .step.active .heading { color: var(--ink); min-height: 0; }
+/* big touch screens (tablets, smart displays): 48px targets for the collapsed steps */
+@media (pointer: coarse) and (min-width: 1000px) { .step:not(.active) .heading { min-height: 48px; } }
 
 /* highlighter swipe that grows behind the active title */
 .hl {
@@ -419,7 +421,7 @@
 
 
 @media (max-height: 840px) {
-  .grid { padding-top: 5.5rem; }
+  .grid { padding-top: 6.5rem; }
   .art { max-width: 27rem; margin-top: 0.4rem; }
   .chips { margin-top: 0.9rem; }
   .content p { font-size: 1rem; line-height: 1.6; }
@@ -456,7 +458,7 @@
     &::before, &::after { bottom: -0.5rem; }
   }
   .marker { gap: 0.55rem; .num { width: 1.5rem; font-size: 11px; } .circle { right: -0.5rem; width: 2.3rem; height: 1.7rem; } }
-  .heading { min-height: 38px; }
+  .heading { min-height: 44px; }
   .content p { font-size: 0.95rem; line-height: 1.6; padding-top: 0.5rem; }
   .chips { margin-top: 0.8rem; }
   .art { max-width: min(100%, 19rem); margin-top: 0.5rem; }
@@ -502,6 +504,16 @@
   .hl { transition: background-size 0.9s var(--ease) 0.35s; }
   .step.active .hl { background-size: 100% 34%; }
 }
+/* tall tablets (portrait): the content is ~650px high, so top-anchoring left up to 45% of the screen empty.
+   Anchor it where its middle sits at mid-screen; still a fixed offset, so nothing moves between steps. */
+@media (min-width: 600px) and (min-height: 900px) and (max-aspect-ratio: 1/1) {
+  .grid { padding-top: calc(50dvh - 21rem); }
+}
+/* tall phones: the label was 13px under the navbar with 120-260px empty below; short ones (iPhone SE) have no slack and keep as is */
+@media (max-width: 599px) and (min-height: 780px) {
+  .grid { padding-top: 6.25rem; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   @include static-layout;
   .step { opacity: 1; transform: none; transition: none; }

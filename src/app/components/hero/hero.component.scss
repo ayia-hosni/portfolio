@@ -9,6 +9,8 @@
   /* --e: photo position 0 (centered) → 1 (right half); --r: details reveal 0 → 1 */
   --e: 0;
   --r: 0;
+  /* room the docked portrait leaves for the floating navbar (pill + its top gap + any notch) */
+  --nav: calc(4.7rem + env(safe-area-inset-top, 0px));
   --w0: min(360px, 72%);
   --h0: min(480px, 54%);
   position: sticky;
@@ -546,7 +548,9 @@
 
   .img-wrap {
     width: 100%;
-    height: 100%;
+    /* once docked (--e → 1) the photo starts below the navbar instead of running under it */
+    margin-top: calc(var(--nav) * var(--e));
+    height: calc(100% - var(--nav) * var(--e));
     position: relative;
     transform-origin: center top;
   }
@@ -629,6 +633,19 @@
   .btn-pill, .btn-ghost { white-space: nowrap; }
   .btn-pill { padding: 0.85rem 1.2rem; font-size: 12.5px; }
   .cta { gap: 1.1rem; }
+}
+
+/* small tablets and the Fold's inner screen (600 to 768px): the full-width strip crops the face at the nose, so the docked
+   photo is a centered portrait-shaped box whose width follows its height, and gets half the screen */
+@media (min-width: 600px) and (max-width: 768px) {
+  .stage { --dock-w: min(100%, calc((50dvh - var(--nav)) * 0.85)); }
+
+  .hero-right {
+    width: calc(var(--w0) + (var(--dock-w) - var(--w0)) * var(--e));
+    height: calc(var(--h0) + (50% - var(--h0)) * var(--e));
+    left: calc((50% - var(--w0) / 2) * (1 - var(--e)) + (50% - var(--dock-w) / 2) * var(--e));
+  }
+  .hero-left { inset: 50% 0 0 0; }
 }
 
 /* small laptops, landscape tablets and phones: a little tighter */
