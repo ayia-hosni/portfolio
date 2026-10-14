@@ -62,13 +62,16 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   /** one `section-view` per section per session: the funnel About → Experience → Projects → Contact */
   ngAfterViewInit() {
     if (typeof IntersectionObserver === 'undefined') return;
+    // "seen" = 35% of the section, or 35% of the screen when the section is taller than that (phones: Projects is ~3 screens)
+    const thresholds = Array.from({ length: 51 }, (_, i) => i / 50);
     this.io = new IntersectionObserver(
       (entries) => entries.forEach((e) => {
-        if (!e.isIntersecting) return;
+        const seen = e.intersectionRatio >= 0.35 || e.intersectionRect.height >= window.innerHeight * 0.35;
+        if (!e.isIntersecting || !seen) return;
         this.analytics.trackOnce('section-view', { section: (e.target as HTMLElement).id });
         this.io?.unobserve(e.target);
       }),
-      { threshold: 0.35 }
+      { threshold: thresholds }
     );
     ['about', 'experience', 'work', 'contact'].forEach((id) => {
       const el = document.getElementById(id);
