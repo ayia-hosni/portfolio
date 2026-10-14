@@ -1,4 +1,21 @@
-<section class="intro" id="experience">
+<!-- company switcher: two slides side by side; only the active company's content is in the page -->
+<div class="switch" id="experience" role="tablist" aria-label="Choose a company">
+  <i class="pill-bg" [style.--i]="company() === 'bh' ? 0 : company() === 'brmja' ? 1 : 2" aria-hidden="true"></i>
+  <button type="button" role="tab" class="tab" [class.on]="company() === 'bh'" [attr.aria-selected]="company() === 'bh'" (click)="pick('bh')">
+    <img src="brain_health_usa_logo.jpeg" alt="" width="28" height="28" />
+    <span>Brain Health USA <small>(via Idaam Cloud)</small></span>
+  </button>
+  <button type="button" role="tab" class="tab" [class.on]="company() === 'brmja'" [attr.aria-selected]="company() === 'brmja'" (click)="pick('brmja')">
+    <img src="ofoq.png" alt="" width="28" height="28" />
+    <span>OFOQ <small>(BRMJA.TECH)</small></span>
+  </button>
+  <button type="button" role="tab" class="tab" [class.on]="company() === 'keel'" [attr.aria-selected]="company() === 'keel'" (click)="pick('keel')">
+    <img src="keelworks.jpeg" alt="" width="28" height="28" />
+    <span>KeelWorks</span>
+  </button>
+</div>
+
+<section class="intro" #intro [class.off]="company() !== 'bh'">
   <span class="company-logo reveal" appReveal>
     <img src="brain_health_usa_logo.jpeg" alt="Brain Health USA logo" width="100" height="100" />
   </span>
@@ -11,19 +28,31 @@
     </span>
     <svg class="under" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M4 8 C40 2 70 13 110 7 S190 2 230 8 S280 12 296 5" /></svg>
   </h2>
-  <p class="role reveal delay-3" appReveal>Healthcare SaaS &amp; Backend Engineering</p>
+  <p class="role reveal delay-3" appReveal>Backend &amp; DevOps Engineer</p>
+  <p class="via reveal delay-3" appReveal>
+    via
+    <img src="idaamcloud_logo.jpeg" alt="Idaam Cloud logo" width="26" height="26" />
+    <b>Idaam Cloud</b>
+  </p>
   <p class="lead reveal delay-4" appReveal>
     A HIPAA-compliant US EMR/EHR and telehealth product used by <strong><span class="mk">450+ providers</span></strong> across
     <strong><span class="mk">50+ clinics</span></strong>, handling about <strong><span class="mk">1,500–2,000 appointments a day</span></strong>.
     Here is how it came together, one chapter at a time.
   </p>
-  <button class="begin reveal delay-5" appReveal type="button" (click)="start()">
-    Start the story
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+  <button class="begin reveal delay-5" appReveal type="button" [class.open]="storyOpen()" [attr.aria-expanded]="storyOpen()" (click)="storyOpen() ? hideStory() : start()">
+    <span class="ico" aria-hidden="true">
+      @if (storyOpen()) {
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>
+      } @else {
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+      }
+    </span>
+    <span class="txt">{{ storyOpen() ? 'Hide the story' : 'Start the story' }}</span>
+    @if (!storyOpen()) { <em class="meta">8 chapters</em> }
   </button>
 </section>
 
-<section class="story" #story aria-label="Brain Health USA, the story">
+<section class="story" [class.off]="company() !== 'bh' || !storyOpen()" #story aria-label="Brain Health USA, the story">
   <div class="stage">
     <div class="topbar">
       <span class="co">[ Brain Health USA ]</span>
@@ -34,6 +63,7 @@
         }
       </div>
       <span class="count" aria-hidden="true">@for (n of [cur()]; track n) {<b class="roll">{{ pad(n + 1) }}</b>} / {{ pad(chapters.length) }}</span>
+      <button type="button" class="hide-story" (click)="hideStory()">Hide story</button>
     </div>
 
     <div class="grid">
@@ -96,4 +126,49 @@
       </div>
     </div>
   </div>
+</section>
+
+<!-- BRMJA.TECH: a separate experience -->
+<section class="exp2" id="brmja" aria-labelledby="brmja-title" [class.off]="company() !== 'brmja'">
+  <span class="company-logo brmja reveal" appReveal>
+    <img src="ofoq.png" alt="OFOQ logo" width="100" height="100" loading="lazy" />
+  </span>
+  <p class="label reveal delay-1" appReveal>[ Experience ]</p>
+  <h2 id="brmja-title" class="exp2-title reveal delay-1" appReveal>
+    <span class="hl2">OFOQ</span>
+  </h2>
+  <p class="aka reveal delay-1" appReveal>
+    <img src="brmja_tech.jpeg" alt="BRMJA.TECH logo" width="26" height="26" loading="lazy" />
+    formerly <b>BRMJA.TECH</b> · now OFOQ Software Development
+  </p>
+  <a class="fb reveal delay-2" appReveal href="https://www.facebook.com/brmja.tech" target="_blank" rel="noopener noreferrer">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.69.24 2.69.24v2.97h-1.52c-1.49 0-1.96.93-1.96 1.88v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z"/></svg>
+    <span>Facebook page</span>
+  </a>
+  <p class="role reveal delay-2" appReveal>Backend &amp; DevOps Engineer</p>
+
+  <article class="exp2-card reveal delay-3" appReveal>
+    <p class="kicker exp2-kicker">Then, a new problem to solve.</p>
+    <h3>Doctor referral system <span>for Canada</span></h3>
+    <p class="exp2-text">
+      A referral system built for <strong>Canadian doctors</strong>, written in <strong>Python</strong>, with the
+      <strong>MedGemma</strong> medical AI model integrated into the workflow.
+    </p>
+    <ul class="chips exp2-chips">
+      <li>Python</li><li>MedGemma</li><li>AI</li><li>Healthcare</li><li>Canada</li>
+    </ul>
+  </article>
+</section>
+
+<!-- KeelWorks -->
+<section class="exp2" id="keel" aria-labelledby="keel-title" [class.off]="company() !== 'keel'">
+  <span class="company-logo keel reveal" appReveal>
+    <img src="keelworks.jpeg" alt="KeelWorks logo" width="100" height="100" loading="lazy" />
+  </span>
+  <p class="label reveal delay-1" appReveal>[ Experience ]</p>
+  <h2 id="keel-title" class="exp2-title reveal delay-1" appReveal>
+    <span class="hl2">KeelWorks</span>
+  </h2>
+  <p class="role reveal delay-2" appReveal>Site Reliability Engineer</p>
+  <p class="aka reveal delay-2" appReveal>Learning to live. Living to learn.</p>
 </section>

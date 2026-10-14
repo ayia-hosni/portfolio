@@ -2,26 +2,6 @@
   <div class="stage" #stage>
     <canvas class="trail" #trail aria-hidden="true"></canvas>
 
-    <!-- Sketchbook doodles in the white space: what I do, drawn in pencil after the portrait is sketched -->
-    <div class="doodles pencil" aria-hidden="true">
-      <div class="side left">
-        <div class="note n1" style="--d: 0s">
-          <span class="mark">backend engineer</span>
-          <svg class="arrow pencil-ink draw" viewBox="0 0 100 60"><path pathLength="1" d="M4 8 C40 -2 78 14 94 46 M82 40 L95 49 L97 33" /></svg>
-        </div>
-
-      </div>
-
-      <div class="side right">
-        <div class="note n2" style="--d: 0.25s">
-          <span class="mark purple">devops engineer</span>
-          <svg class="arrow flip pencil-ink draw" viewBox="0 0 100 60"><path pathLength="1" d="M4 8 C40 -2 78 14 94 46 M82 40 L95 49 L97 33" /></svg>
-        </div>
-
-      </div>
-    </div>
-
-
     <!-- playful stickers around the docked portrait (pop in once the details are showing) -->
     <div class="stickers pencil" aria-hidden="true">
       <div class="bubble">
@@ -42,12 +22,12 @@
       <svg class="squiggle draw" viewBox="0 0 90 50"><path pathLength="1" d="M4 38 C14 6 24 6 22 30 C20 52 38 8 44 28 C48 46 62 6 68 26 C72 42 80 18 86 24" /></svg>
     </div>
 
-    <!-- Step 1a: the welcome, above the portrait (three languages; plays once EN → AR → FR → EN) -->
+    <!-- Step 1a: the welcome, above the portrait (three languages; plays once EN → AR → DE → EN) -->
     <div class="welcome">
       <p class="sr-only">
         Hi, welcome! I'm Aya.
         <span lang="ar" dir="rtl">مرحباً، أهلاً بك! أنا آية.</span>
-        <span lang="fr">Bonjour, bienvenue ! Je suis Aya.</span>
+        <span lang="de">Hallo, willkommen! Ich bin Aya.</span>
       </p>
 
       <div class="stack" aria-hidden="true">
@@ -88,7 +68,7 @@
       </span>
     </div>
 
-    <!-- Step 2: details, revealed as the photo moves aside. Label, hand-lettered headline, circled sentence, pill buttons, stat card. -->
+    <!-- Step 2: details, revealed as the photo moves aside. Label, hand-lettered headline, pill buttons, stat card. -->
     <div class="hero-left">
       <div class="hero-content">
         <p class="label r" style="--k: 0"><i>[</i> Backend engineer <i>]</i></p>
@@ -99,10 +79,6 @@
           <span class="row big" style="--ri: 2"><span class="in"><span class="pill word">trust at 3 a.m.<svg class="swoosh" viewBox="0 0 300 18" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M4 11 C60 2 120 15 180 7 S270 6 296 10" /></svg></span></span></span>
         </h1>
 
-        <p class="sub r" style="--k: 2">
-          I build reliable, observable
-          <span class="circ">distributed systems<svg class="circ-svg" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M20 8 C70 -2 150 0 188 14 C206 24 198 46 160 54 C110 62 40 60 14 44 C-2 32 6 14 40 7" /></svg></span>, and write code the next engineer can actually read.
-        </p>
 
         <div class="cta r" style="--k: 3">
           <button type="button" class="btn-pill" (click)="goTo('contact')">
@@ -116,14 +92,17 @@
           </button>
         </div>
 
-        <div class="statcard r" style="--k: 4">
-          <div class="stat"><b data-to="4" data-dec="0" data-suffix="+">4+</b><span>Years building backends</span></div>
-          <i class="vr"></i>
-          <div class="stat"><b data-to="2.5" data-dec="1" data-suffix="+">2.5+</b><span>Years of experience</span></div>
-          <div class="avatars" role="img" aria-label="Java, Python and PHP"><span>J</span><span>Py</span><span>P</span></div>
+        <!-- two bars on one shared scale: "building backends" contains the professional years (static: no loading-bar effect) -->
+        <!-- nested sticker boxes: the 2.5 years of professional work sit inside the 4+ years of building backends -->
+        <div class="years r" style="--k: 4">
+          <div class="outer">
+            <div class="head"><b>4+</b><span>Years experience</span></div>
+            <div class="inner">
+              <div class="head"><b>2.5+</b><span>Years of professional experience</span></div>
+            </div>
+          </div>
         </div>
 
-        <p class="foot r" style="--k: 5">Cairo · Open to UAE / EU / Remote</p>
       </div>
     </div>
 
@@ -132,10 +111,9 @@
          #heroRight
          (mousemove)="onMove($event, heroRight)"
          (mouseleave)="onLeave()">
-      <div class="img-wrap" #imgWrap>
-        <img class="img-bw" src="profile-cutout.webp" alt="Aya Hosni" />
-        <canvas class="sketch" #sketch aria-hidden="true"></canvas>
-        <img class="img-color" src="profile-cutout.webp" alt="" aria-hidden="true" [class.active]="hovering()" />
+      <div class="img-wrap">
+        <img class="img-bw" src="profile-cutout.webp" alt="Aya Hosni" decoding="async" fetchpriority="high" />
+        <img class="img-color" src="profile-cutout.webp" alt="" aria-hidden="true" decoding="async" [class.active]="hovering()" />
       </div>
     </div>
   </div>

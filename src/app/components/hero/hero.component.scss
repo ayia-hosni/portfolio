@@ -9,10 +9,6 @@
   /* --e: photo position 0 (centered) → 1 (right half); --r: details reveal 0 → 1 */
   --e: 0;
   --r: 0;
-  --tx: 0;
-  --ty: 0;
-  /* mouse-follow strength, fades to 0 once the photo has docked */
-  --m: calc(1 - var(--e));
   --w0: min(360px, 72%);
   --h0: min(480px, 54%);
   position: sticky;
@@ -28,85 +24,10 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 1;
+  z-index: 0;                 /* behind everything: the portrait, the greeting and the details always sit on top */
   pointer-events: none;
-  opacity: clamp(0, calc(1 - var(--e) * 2), 1);
-}
-
-/* ── DOODLES: sketchbook notes in the white space beside the centered portrait ── */
-.doodles {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  color: var(--ink);
   opacity: clamp(0, calc(1 - var(--e) * 3), 1);
 }
-
-.side {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 34%;
-  transition: translate 0.3s ease-out;
-  &.left  { left: 0;  translate: calc(var(--tx) * -16px) calc(var(--ty) * -10px); }
-  &.right { right: 0; translate: calc(var(--tx) * -16px) calc(var(--ty) * -10px); }
-}
-
-/* strokes draw themselves once the portrait sketch is done (.ready is set from TS) */
-.draw path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  vector-effect: non-scaling-stroke;
-  transition: stroke-dashoffset 1.4s ease-in-out var(--d, 0s);
-}
-.ready .draw path { stroke-dashoffset: 0; }
-
-.note {
-  position: absolute;
-  font-size: clamp(30px, 2.8vw, 44px);
-  line-height: 1.1;
-  white-space: nowrap;
-
-  .arrow { position: absolute; width: 170px; overflow: visible; }
-}
-.note.n1 { left: 26%; top: 26%; .arrow { left: 58%; top: 118%; } }
-.note.n2 { right: 24%; top: 22%; width: 280px; height: 64px; text-align: right; .arrow { right: 78%; top: 150%; } }
-.note .arrow.flip { transform: scaleX(-1); }
-
-/* blue highlighter swipe behind the key phrase */
-.mark {
-  padding: 0 0.25em;
-  margin: 0 -0.25em;
-  background: linear-gradient(104deg, transparent 0.4em, rgba(120, 180, 255, 0.45) 0.5em, rgba(120, 180, 255, 0.35) 94%, transparent 99%);
-  background-size: 0% 62%;
-  background-position: 0 85%;
-  background-repeat: no-repeat;
-  transition: background-size 1s ease-out calc(var(--d, 0s) + 0.1s);
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-}
-.ready .mark { background-size: 100% 62%; }
-
-/* purple highlighter variant for the second note */
-.mark.purple {
-  background-image: linear-gradient(104deg, transparent 0.4em, rgba(160, 130, 255, 0.42) 0.5em, rgba(160, 130, 255, 0.32) 94%, transparent 99%);
-}
-
-.mark {
-  opacity: 0;
-  transition-property: background-size, opacity;
-  transition-duration: 1s, 0.6s;
-  transition-delay: calc(var(--d, 0s) + 0.1s), var(--d, 0s);
-}
-.ready .mark { opacity: 1; }
-
-@media (max-width: 1100px) { .doodles { display: none; } }
 
 /* ── WELCOME (centered phase) ── */
 .welcome {
@@ -324,6 +245,7 @@
    Entry is a time-based, staggered sequence (class .details-in, toggled from scroll progress) so it
    springs and overshoots; it plays in reverse when you scroll back up. */
 .hero-left {
+  z-index: 1;
   --pill-blue: rgba(150, 205, 255, 0.6);
   --pill-purple: rgba(190, 160, 255, 0.55);
   --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -471,36 +393,9 @@
 .details-in .pill.word .swoosh path { stroke-dashoffset: 0; transition: stroke-dashoffset 0.9s var(--out) 1.5s; }
 
 /* the small clean sentence under the headline */
-.sub {
-  margin: -0.4rem 0 0;
-  max-width: 31rem;
-  font-size: clamp(1rem, 1.15vw, 1.15rem);
-  font-weight: 450;
-  line-height: 1.7;
-  letter-spacing: -0.005em;
-  color: var(--grey);
-}
-
 .cta { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; }
 .or { font-size: 1.5rem; color: var(--grey); rotate: -4deg; }
 @media (max-width: 480px) { .or { display: none; } }
-
-/* hand-drawn circle around part of the headline, drawn after the line lands */
-.circ {
-  position: relative;
-  display: inline-block;
-  padding: 0 0.12em;
-  .circ-svg {
-    position: absolute;
-    inset: -0.34em -0.28em -0.3em -0.28em;
-    width: calc(100% + 0.56em);
-    height: calc(100% + 0.64em);
-    overflow: visible;
-    pointer-events: none;
-    path { fill: none; stroke: var(--brand); stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; vector-effect: non-scaling-stroke; transition: stroke-dashoffset 0.2s ease; }
-  }
-}
-.details-in .circ .circ-svg path { stroke-dashoffset: 0; transition: stroke-dashoffset 1s var(--out) 1.6s; }
 
 .btn-pill, .btn-ghost {
   font: 650 13px/1 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
@@ -546,81 +441,56 @@
   &:hover .dotc { transform: rotate(-12deg) scale(1.12); background: var(--pill-blue); }
 }
 
-.statcard {
-  rotate: -1.2deg;
-  display: flex;
-  align-items: center;
-  gap: 1.75rem;
-  padding: 1.25rem 1.7rem;
-  border: 1.5px solid var(--ink);
-  border-radius: 22px;
-  background: var(--bg);
-  transition: transform 0.35s var(--spring), box-shadow 0.35s;
+/* the years card shows up with the details straight away: no slide-up and no staggered wait */
+.years.r { transform: none; }
+.details-in .years.r { transition-duration: 0.2s; transition-delay: 0s; }
 
-  &:hover { transform: translateY(-3px); box-shadow: 0 16px 32px -18px color-mix(in srgb, var(--ink) 55%, transparent); }
+/* ── YEARS: two nested sticker boxes, the shorter inside the longer (static, no loading animation) ── */
+.years {
+  rotate: -1deg;
+  transition: transform 0.35s var(--spring);
+  &:hover { transform: translateY(-3px); }
 
-  .stat {
-    b {
-      display: block;
-      min-width: 3.2ch;
-      font-size: 2.4rem;
-      font-weight: 800;
-      letter-spacing: -0.055em;
-      line-height: 1.02;
-      font-variant-numeric: tabular-nums;
-    }
-    span {
-      display: block;
-      margin-top: 0.25rem;
-      font-size: 10.5px;
-      font-weight: 600;
-      letter-spacing: 0.13em;
-      text-transform: uppercase;
-      color: var(--grey);
-    }
+  .outer {
+    padding: 1rem 1.2rem 1.2rem;
+    border: 1.5px solid var(--ink);
+    border-radius: 24px;
+    background: var(--pill-blue);
+    box-shadow: 5px 5px 0 var(--ink);               /* flat sticker shadow, like the starburst */
   }
-  .vr { width: 1px; height: 3rem; background: color-mix(in srgb, var(--ink) 20%, transparent); }
-
-  .avatars {
-    margin-left: auto;
-    display: flex;
-    span {
-      width: 42px;
-      height: 42px;
-      margin-left: -8px;
-      display: grid;
-      place-items: center;
-      border: 1.5px solid var(--ink);
-      border-radius: 50%;
-      font: 700 12px/1 'Inter', -apple-system, sans-serif;
-      color: var(--ink);
-      scale: 0;
-      transition: scale 0.2s ease, margin 0.35s var(--spring);
-      &:nth-child(1) { margin-left: 0; background: var(--pill-blue); }
-      &:nth-child(2) { background: var(--pill-purple); }
-      &:nth-child(3) { background: var(--bg); }
-    }
+  .inner {
+    width: max(62.5%, 13.5rem);                      /* 2.5 of 4 years: the inner box is 62.5% of the outer one */
+    margin-top: 0.85rem;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--ink);
+    border-radius: 16px;
+    background: var(--pill-purple);
+    rotate: 1.2deg;
+    transform-origin: left center;
   }
-  /* badges pop in one by one, then fan out slightly on hover */
-  &:hover .avatars span:nth-child(n + 2) { margin-left: 3px; }
-}
-.details-in .statcard .avatars span {
-  scale: 1;
-  transition: scale 0.6s var(--spring), margin 0.35s var(--spring);
-  &:nth-child(1) { transition-delay: 0.85s, 0s; }
-  &:nth-child(2) { transition-delay: 0.97s, 0s; }
-  &:nth-child(3) { transition-delay: 1.09s, 0s; }
-}
 
-.foot {
-  margin: 0;
-  padding-top: 1.2rem;
-  border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--grey);
+  .head { display: flex; align-items: baseline; gap: 0.7rem; flex-wrap: wrap; }
+  /* hand-lettered, like the headline and stickers: chunky numbers, pencil-written labels */
+  b {
+    min-width: 2.2ch;
+    font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+    font-size: 3.6rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 0.9;
+    -webkit-text-stroke: 0.05em currentColor;
+    paint-order: stroke fill;
+  }
+  .inner b { font-size: 3rem; color: var(--brand); }
+  .head span {
+    font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+    font-size: 1.55rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.05;
+    text-transform: none;
+    color: color-mix(in srgb, var(--ink) 78%, transparent);
+  }
 }
 
 /* ── PHOTO: interpolates from a centered card to the right half ── */
@@ -647,11 +517,7 @@
     linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
   -webkit-mask-composite: source-in;
   mask-composite: intersect;
-  /* roams the white space: percentages are of the photo's own size */
-  transform:
-    translate(calc(var(--tx) * 140% * var(--m)), calc(var(--ty) * 40% * var(--m)))
-    rotate(calc(var(--tx) * 3deg * var(--m)));
-  will-change: transform;
+  /* the photo stays perfectly still: it only moves when the scroll glides it aside (via --e), never on its own or with the mouse */
 
   &::before,
   &::after {
@@ -683,7 +549,6 @@
     height: 100%;
     position: relative;
     transform-origin: center top;
-    animation: img-float 7s ease-in-out 1.6s infinite;
   }
 
   img {
@@ -695,23 +560,6 @@
     object-position: center 8%;   /* keeps the whole face in frame when the box gets short and wide */
     display: block;
   }
-
-  /* the photo fades in under the pencil sketch once it has been drawn */
-  .img-wrap img { opacity: 0; transition: opacity 1.6s ease; }
-  .img-wrap.drawn img { opacity: 1; }
-
-  .sketch {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-    pointer-events: none;
-    transition: opacity 1.6s ease 0.2s;
-    /* white paper drops out, leaving only the graphite */
-    mix-blend-mode: multiply;
-  }
-  .img-wrap.drawn .sketch { opacity: 0; }
 
   .img-bw { filter: grayscale(1); }
 
@@ -732,11 +580,6 @@
   50%       { transform: translateY(5px); }
 }
 
-@keyframes img-float {
-  0%, 100% { transform: scale(1.04) translateY(0); }
-  50%       { transform: scale(1.04) translateY(-10px); }
-}
-
 /* ── responsive: photo glides to the top, details sit below ── */
 /* small laptops and landscape tablets: the details column is only ~460px, so tighten it */
 @media (max-width: 1180px) and (min-width: 769px) {
@@ -744,19 +587,13 @@
   .hero-content { gap: 1.4rem; }
   .headline { font-size: clamp(22px, 2.9vw, 30px); }
   .row.big { font-size: clamp(46px, 6.2vw, 64px); }
-  .statcard { gap: 1rem; padding: 1rem 1.1rem; flex-wrap: wrap; }
-  .statcard .stat b { font-size: 2rem; }
-  .statcard .stat span { letter-spacing: 0.08em; }
-  .statcard .vr { display: none; }
-  .statcard .avatars { margin-left: 0; }
   .cta { gap: 1.1rem; flex-wrap: wrap; }
-  .foot { display: none; }
 }
 
 /* short landscape screens (phones turned sideways): everything has to fit in ~330px of height */
 @media (max-height: 560px) and (min-width: 769px) {
   .stage { --w0: 130px; --h0: 168px; }
-  .doodles, .trail { display: none; }
+  .trail { display: none; }
   .welcome { top: 3.6rem; }
   .hello.top { font-size: 24px; }
   .hello.bottom { font-size: 30px; }
@@ -768,19 +605,13 @@
   .label { display: none; }
   .headline { font-size: 21px; gap: 0.1rem; }
   .row.big { font-size: 38px; }
-  .sub { font-size: 0.9rem; line-height: 1.45; }
   .pill.name { font-size: 1.45em; }
   .cta { gap: 1rem; }
   .btn-pill { padding: 0.7rem 1.2rem; }
-  .statcard { padding: 0.6rem 0.9rem; gap: 0.8rem; }
-  .statcard .stat b { font-size: 1.5rem; }
-  .statcard .avatars { display: none; }
-  .foot { display: none; }
 }
 
 @media (max-width: 768px) {
   .stage { --h0: min(380px, 46%); }
-  .hero-right { transform: translate(calc(var(--tx) * 18% * var(--m)), calc(var(--ty) * 25% * var(--m))); }
 
   .hero-right {
     width: calc(var(--w0) + (100% - var(--w0)) * var(--e));
@@ -793,34 +624,43 @@
   .hero-content { gap: 1rem; }
   .headline { font-size: clamp(20px, 5.6vw, 26px); }
   .row.big { font-size: clamp(38px, 11.5vw, 50px); }
-  .sub { font-size: 0.9rem; line-height: 1.5; margin-top: -0.3rem; }
   .label { display: none; }                 /* the headline already says it; saves a line */
   .hero-content { gap: 0.7rem; }
-  .statcard .avatars { display: none; }
   .btn-pill, .btn-ghost { white-space: nowrap; }
   .btn-pill { padding: 0.85rem 1.2rem; font-size: 12.5px; }
   .cta { gap: 1.1rem; }
-  .statcard .stat b { font-size: 1.9rem; }
-  .statcard { padding: 0.8rem 1rem; gap: 0.9rem 1rem; flex-wrap: wrap; }
-  .statcard .stat { flex: 1 1 40%; }
-  .statcard .vr { display: none; }
-  .statcard .avatars { margin-left: 0; }
-  .foot { display: none; }
+}
+
+/* small laptops, landscape tablets and phones: a little tighter */
+
+/* short landscape screens: just the two bars */
+
+/* small screens: tighter boxes */
+@media (max-width: 1180px) {
+  .years { .outer { padding: 0.85rem 1rem 1rem; } b { font-size: 2rem; } .inner b { font-size: 1.7rem; } }
+}
+@media (max-width: 480px) {
+  .years { .head { gap: 0.5rem; } b { font-size: 2.5rem; } .inner b { font-size: 2.2rem; } .head span { font-size: 1.3rem; } .inner { width: auto; } }
+}
+/* short portrait phones: the lettered card has to be compact to stay on screen */
+@media (max-width: 768px) and (max-height: 720px) {
+  .years { .outer { padding: 0.55rem 0.8rem 0.7rem; } .inner { margin-top: 0.4rem; padding: 0.35rem 0.7rem; } b { font-size: 1.9rem; } .inner b { font-size: 1.7rem; } .head span { font-size: 1.1rem; } }
+  .hero-content { gap: 0.5rem; }
+}
+/* short landscape screens */
+@media (max-height: 560px) and (min-width: 769px) {
+  .years { .outer { padding: 0.55rem 0.8rem 0.7rem; box-shadow: 3px 3px 0 var(--ink); } .inner { margin-top: 0.5rem; padding: 0.4rem 0.7rem; } b { font-size: 1.45rem; } .inner b { font-size: 1.25rem; } }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .stickers .bubble, .stickers .burst { scale: 1; opacity: 1; transition: none; animation: none; }
-  .stickers .draw path, .circ .circ-svg path { stroke-dashoffset: 0; transition: none; }
-  .hero-left .r, .hero-left .in, .hero-left .pill, .hero-left .swoosh path, .hero-left .avatars span {
+  .stickers .draw path { stroke-dashoffset: 0; transition: none; }
+  .hero-left .r, .hero-left .in, .hero-left .pill, .hero-left .swoosh path {
     opacity: 1; transform: none; scale: 1; rotate: 0deg; stroke-dashoffset: 0; transition: none !important;
   }
   .hero { height: auto; }
   .stage { position: relative; min-height: 100vh; }
   .welcome, .trail { display: none; }
   .draw path { transition: none; stroke-dashoffset: 0; }
-  .mark { transition: none; opacity: 1; }
-  .mark { background-size: 100% 62%; }
   .hero-right { transition: none; transform: none; }
-  .hero-right .img-wrap img { opacity: 1; transition: none; }
-  .hero-right .sketch { display: none; }
 }

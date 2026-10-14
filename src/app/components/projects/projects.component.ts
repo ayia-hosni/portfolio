@@ -10,6 +10,7 @@ interface Project {
   desc: string;
   stack: string[];
   logo: string;
+  links?: { label: string; url: string }[];
   architectureDiagrams?: ArchitectureDiagram[];
   highlights?: { value: string; label: string }[];
 }
@@ -27,6 +28,8 @@ export class ProjectsComponent implements AfterViewInit, OnDestroy {
 
   /** -1 = the card's intro; 0..n-1 = which diagram slide is showing */
   step = signal(-1);
+  /** the architecture slides stay hidden until the visitor asks for them */
+  archOpen = signal(false);
   /** true shortly before the pinned card reaches the screen (start rendering diagrams) */
   armed = signal(false);
   private cleanup: Array<() => void> = [];
@@ -53,6 +56,21 @@ export class ProjectsComponent implements AfterViewInit, OnDestroy {
       desc: 'CS-education tooling: a full-stack LeetCode-style coding-practice app on a Spring Boot / Angular architecture, plus an interactive linked-list learning game that makes pointer mechanics tangible.',
       stack: ['Spring Boot', 'Angular', 'TypeScript', 'Docker'],
       logo: 'aya_lab.png',
+      links: [
+        { label: 'Live site', url: 'https://ayalab.co/' },
+        { label: 'GitHub (backend)', url: 'https://github.com/ayia-hosni/ayalab-backend' },
+      ],
+    },
+    {
+      num: '03',
+      title: 'StudySync',
+      desc: 'A study platform for students: live study sessions over plugNmeet video meetings, community posts, a habit tracker to build a daily study routine, and student challenges to keep everyone motivated. Live now and built in the open under the StudySync-Platform GitHub organization.',
+      stack: ['plugNmeet', 'Posts', 'Habit tracker', 'Student challenges'],
+      logo: 'aya_lab.png',
+      links: [
+        { label: 'Live site', url: 'https://study.ayalab.co/' },
+        { label: 'GitHub', url: 'https://github.com/StudySync-Platform' },
+      ],
     },
   ];
 
@@ -66,6 +84,10 @@ export class ProjectsComponent implements AfterViewInit, OnDestroy {
       let last = -2;
       const onScroll = () => {
         const rect = pin.getBoundingClientRect();
+        if (!this.archOpen()) {
+          if (last !== -1) { last = -1; this.zone.run(() => this.step.set(-1)); }
+          return;
+        }
         if (!this.armed() && rect.top < window.innerHeight * 1.6 && rect.bottom > 0) this.zone.run(() => this.armed.set(true));
         const track = pin.offsetHeight - stick.offsetHeight;
         const progress = track > 0 ? Math.min(1, Math.max(0, (ProjectsComponent.TOP - rect.top) / track)) : 0;
@@ -82,6 +104,24 @@ export class ProjectsComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.cleanup.forEach((fn) => fn());
+  }
+
+  openArchitecture() {
+    this.archOpen.set(true);
+    // let the slides render and the pinned track grow, then glide to the first diagram
+    setTimeout(() => {
+      window.dispatchEvent(new Event('scroll'));
+      this.jumpTo(0);
+    }, 50);
+  }
+
+  hideArchitecture() {
+    const pin = this.host.nativeElement.querySelector('.pin') as HTMLElement | null;
+    this.archOpen.set(false);
+    this.armed.set(false);
+    this.step.set(-1);
+    // the track just collapsed: put the card back in view (instant, a smooth scroll would be cut short)
+    setTimeout(() => pin?.scrollIntoView({ block: 'center', behavior: 'instant' }), 50);
   }
 
   /** the project whose architecture is told inside its card */

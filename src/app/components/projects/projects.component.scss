@@ -223,6 +223,8 @@
   }
 }
 
+.links { display: flex; flex-wrap: wrap; gap: 0.6rem; .btn-pill { text-decoration: none; } }
+
 .btn-pill {
   display: inline-flex;
   align-items: center;
@@ -326,12 +328,77 @@
   .story-card .facts li span { font-size: 11.5px; }
 }
 
+/* catchy trigger for the architecture slides (same language as the experience "Start the story" button) */
+.arch-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 1.3rem;
+  padding: 0.6rem 1.3rem 0.6rem 0.6rem;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: rgba(150, 205, 255, 0.85);
+  color: var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  font: 800 14px/1 'Inter', -apple-system, sans-serif;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  rotate: -1.2deg;
+  transition: transform 0.25s var(--spring), box-shadow 0.25s, rotate 0.25s var(--spring), background 0.25s;
+  .ico {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 2.3rem;
+    height: 2.3rem;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--bg);
+    &::after { content: ''; position: absolute; inset: -2px; border-radius: 50%; border: 2px solid var(--ink); animation: arch-ring 1.8s ease-out infinite; }
+  }
+  .meta {
+    padding: 0.28rem 0.6rem;
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    background: var(--bg);
+    font: 600 11px/1 'SF Mono', 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+    font-style: normal;
+    white-space: nowrap;
+  }
+  &:hover { transform: translate(-2px, -3px); rotate: 0deg; box-shadow: 7px 8px 0 var(--ink); }
+  &:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--ink); }
+  &:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; }
+  &.open { background: var(--bg); box-shadow: 3px 3px 0 var(--ink); rotate: 0deg; .ico::after { display: none; } }
+}
+@keyframes arch-ring { 0% { transform: scale(1); opacity: 0.55; } 100% { transform: scale(1.7); opacity: 0; } }
+
+.hide-arch {
+  position: absolute;
+  top: 1.15rem;
+  right: 7.2rem;   /* sits left of the 01 / 11 counter */
+  z-index: 5;
+  padding: 0.4rem 0.8rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 700 11px/1 'Inter', -apple-system, sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  &:hover { background: rgba(150, 205, 255, 0.5); }
+  &:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+}
+
 /* ── pinned card: tall track, the card sticks to the screen while the slides play inside it ── */
 .pin {
   /* intro + one slide per diagram */
   height: calc(var(--steps, 12) * 58vh + 30vh);
   margin: 0;
 }
+.pin.closed { height: auto; }
+.pin.closed .pin-stick { position: static; }
 .pin-stick {
   position: sticky;
   top: 5rem;
@@ -427,6 +494,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .arch-btn .ico::after { animation: none; }
   .pin { height: auto; }
   .pin-stick { position: static; height: auto; min-height: 0; }
   .story-card { height: auto; }

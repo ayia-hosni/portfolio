@@ -1,7 +1,7 @@
 /* Tall track: the sticky stage stays pinned while the page scrolls through it */
 .split {
   position: relative;
-  height: 300vh;
+  height: 220vh;
   border-bottom: 1px solid var(--line);
 }
 
@@ -27,6 +27,28 @@ canvas {
 }
 
 /* ── ambient effects: clouds and birds appear in the white space as the A splits ── */
+.scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(1.5rem, 7vh, 4rem);
+  z-index: 3;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  translate: -50% 0;
+  font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+  font-size: 2rem;
+  font-weight: 500;
+  color: var(--brand);
+  pointer-events: none;
+  opacity: var(--hint, 0);
+  transform: translateY(calc((1 - var(--hint, 0)) * 12px));
+  svg { animation: hint-bob 1.6s ease-in-out infinite; }
+}
+@keyframes hint-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(7px); } }
+
 .fx {
   --split: 0;
   position: absolute;
@@ -128,6 +150,7 @@ canvas {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .scroll-hint { display: none; }
   .fx { display: none; }
   .split { height: auto; }
   .stage { position: relative; height: auto; min-height: 100vh; }

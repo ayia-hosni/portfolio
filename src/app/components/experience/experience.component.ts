@@ -25,6 +25,7 @@ interface Chapter {
 })
 export class ExperienceComponent implements AfterViewInit, OnDestroy {
   @ViewChild('story', { static: true }) story!: ElementRef<HTMLElement>;
+  @ViewChild('intro', { static: true }) intro!: ElementRef<HTMLElement>;
 
   readonly chapters: Chapter[] = [
     {
@@ -141,6 +142,17 @@ export class ExperienceComponent implements AfterViewInit, OnDestroy {
     },
   ];
 
+  /** which company's experience is showing */
+  company = signal<'bh' | 'brmja' | 'keel'>('bh');
+
+  pick(c: 'bh' | 'brmja' | 'keel') {
+    if (c === this.company()) return;
+    this.company.set(c);
+    // the pinned story may have been scrolled deep: bring the switcher back into view so the new slide starts at its top
+    document.getElementById('experience')?.scrollIntoView({ block: 'start' });
+    window.scrollBy(0, -88);
+  }
+
   active = signal(0);
   staticMode = signal(false);
   seen = signal<Set<number>>(new Set());
@@ -156,7 +168,7 @@ export class ExperienceComponent implements AfterViewInit, OnDestroy {
     return this.staticMode() ? this.seen().has(i) : i === this.active();
   }
   private cleanup: Array<() => void> = [];
-  private countFrame = 0;
+  private countFrames = new Map<number, number>();
   private static readonly STATIC_LAYOUT = '(max-height: 520px), (prefers-reduced-motion: reduce)';
 
   constructor(private zone: NgZone) {}
@@ -187,7 +199,7 @@ export class ExperienceComponent implements AfterViewInit, OnDestroy {
             const i = +(e.target as HTMLElement).dataset['i']!;
             if (!this.seen().has(i)) {
               this.zone.run(() => this.seen.update((s) => new Set([...s, i])));
-              this.countMetrics(i);
+              if (this.staticMode()) this.countMetrics(i);   // pinned layout counts from the scroll handler (every chapter overlaps there)
             }
           });
         },
@@ -212,7 +224,7 @@ export class ExperienceComponent implements AfterViewInit, OnDestroy {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const els = Array.from(this.story.nativeElement.querySelectorAll<HTMLElement>(`.chapter[data-i="${chapter}"] .metric b`));
     if (!els.length) return;
-    cancelAnimationFrame(this.countFrame);
+    cancelAnimationFrame(this.countFrames.get(chapter) ?? 0);   // only this chapter's own count: other chapters must not cancel it
     const start = performance.now() + 450;
     const dur = 1100;
     const fmt = (final: string, k: number) =>
@@ -225,9 +237,9 @@ export class ExperienceComponent implements AfterViewInit, OnDestroy {
       const t = Math.min(1, Math.max(0, (now - start) / dur));
       const k = 1 - Math.pow(1 - t, 3);
       els.forEach((el) => (el.textContent = fmt(el.dataset['final']!, k)));
-      if (t < 1) this.countFrame = requestAnimationFrame(tick);
+      if (t < 1) this.countFrames.set(chapter, requestAnimationFrame(tick));
     };
-    this.countFrame = requestAnimationFrame(tick);
+    this.countFrames.set(chapter, requestAnimationFrame(tick));
   }
 
   /** illustration card tilts toward the pointer; the artwork inside shifts a little the other way */
@@ -257,7 +269,7 @@ export class ExperienceComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    cancelAnimationFrame(this.countFrame);
+    this.countFrames.forEach((f) => cancelAnimationFrame(f));
     this.cleanup.forEach((fn) => fn());
   }
 
@@ -285,7 +297,26 @@ export class ExperienceComponent implements AfterViewInit, OnDestroy {
     window.scrollTo({ top, behavior: 'smooth' });
   }
 
+  /** the pinned story stays hidden until the visitor asks for it */
+  storyOpen = signal(false);
+
   start() {
-    this.story.nativeElement.scrollIntoView({ behavior: 'smooth' });
+    this.storyOpen.set(true);
+    // let the section render, then recompute the scroll position and glide to it
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+      this.story.nativeElement.scrollIntoView({ behavior: 'smooth' });
+      // play the first chapter's numbers as the story arrives
+      setTimeout(() => this.zone.runOutsideAngular(() => this.countMetrics(0)), 350);
+    });
+  }
+
+  hideStory() {
+    this.storyOpen.set(false);
+    this.active.set(0);
+    // the story is gone, so bring the intro back into view
+    setTimeout(() => {
+      this.intro.nativeElement.scrollIntoView({ block: 'center', behavior: 'instant' });   // instant: the page just got shorter, a smooth scroll would be cut short
+    }, 50);
   }
 }

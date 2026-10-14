@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, NgZone, OnDestroy, signal } from '@angular/core';
+import { ScrollGateService } from '../../core/scroll-gate.service';
 
 interface Stop {
   label: string;
@@ -144,7 +145,7 @@ export class SectionNavComponent implements AfterViewInit, OnDestroy {
 
   private cleanup: Array<() => void> = [];
 
-  constructor(private zone: NgZone) {}
+  constructor(private zone: NgZone, private gate: ScrollGateService) {}
 
   ngAfterViewInit() {
     this.zone.runOutsideAngular(() => {
@@ -172,12 +173,14 @@ export class SectionNavComponent implements AfterViewInit, OnDestroy {
     const stops: Stop[] = [];
     const add = (label: string, sel: string, offset: number) => {
       const el = document.querySelector<HTMLElement>(sel);
-      if (el) stops.push({ label, el, offset });
+      if (el && el.offsetParent !== null) stops.push({ label, el, offset });
     };
     add('Welcome', '#top', 0);
     add('The letter A', 'app-split-intro .split', 0);
     add('How I build', '#about', 70);
     add('Experience', '#experience', 70);
+    add('OFOQ', '#brmja', 70);
+    add('KeelWorks', '#keel', 70);
     add('Projects', '#work', 70);
     document.querySelectorAll<HTMLElement>('app-projects .projects > *').forEach((el) => {
       const title = el.querySelector('h3')?.textContent?.trim() ?? 'Project';
@@ -210,6 +213,7 @@ export class SectionNavComponent implements AfterViewInit, OnDestroy {
   }
 
   go(dir: 1 | -1) {
+    if (dir === 1 && this.gate.locked) return;      // let the current section finish first
     const stops = this.collect();
     const y = window.scrollY;
     // current = last stop at or above the viewport top; moving forward lands on the next, back on the previous

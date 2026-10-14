@@ -118,23 +118,69 @@
 
 
 .begin {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.95rem 1.6rem;
-  border: 0;
+  gap: 0.8rem;
+  margin-top: 0.4rem;
+  padding: 0.7rem 1.5rem 0.7rem 0.7rem;
+  border: 2px solid var(--ink);
   border-radius: 999px;
-  background: var(--ink);
-  color: var(--bg);
-  font: 700 13px/1 'Inter', -apple-system, sans-serif;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  background: rgba(190, 160, 255, 0.85);
+  color: var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+  font: 800 15px/1 'Inter', -apple-system, sans-serif;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  transition: transform 0.25s var(--spring), box-shadow 0.25s;
-  svg { animation: nudge 2.4s ease-in-out infinite; }
-  &:hover { transform: translateY(-2px); box-shadow: 0 10px 22px -10px color-mix(in srgb, var(--ink) 60%, transparent); }
-  &:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+  rotate: -1.5deg;
+  transition: transform 0.25s var(--spring), box-shadow 0.25s, rotate 0.25s var(--spring), background 0.25s;
+
+  /* play badge, with a ring that pulses to draw the eye */
+  .ico {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--bg);
+    svg { margin-left: 2px; }
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 50%;
+      border: 2px solid var(--ink);
+      animation: ring 1.8s ease-out infinite;
+    }
+  }
+  .txt { font-size: 1.05rem; }
+  .meta {
+    padding: 0.28rem 0.6rem;
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    background: var(--bg);
+    font: 600 11px/1 'SF Mono', 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+    font-style: normal;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  &:hover { transform: translate(-2px, -3px); rotate: 0deg; box-shadow: 8px 9px 0 var(--ink); }
+  &:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--ink); }
+  &:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; }
+
+  /* once the story is open the button calms down into a plain "hide" control */
+  &.open {
+    background: var(--bg);
+    box-shadow: 3px 3px 0 var(--ink);
+    rotate: 0deg;
+    .ico { width: 2rem; height: 2rem; &::after { display: none; } svg { margin: 0; } }
+    .txt { font-size: 0.95rem; }
+  }
 }
+@keyframes ring { 0% { transform: scale(1); opacity: 0.55; } 100% { transform: scale(1.7); opacity: 0; } }
 @keyframes nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
 
 /* ── pinned story ── */
@@ -174,6 +220,21 @@
     color: var(--grey);
     white-space: nowrap;
     b { color: var(--ink); font-size: 14px; }
+  }
+  .hide-story {
+    padding: 0.4rem 0.8rem;
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    background: none;
+    color: var(--ink);
+    font: 700 11px/1 'Inter', -apple-system, sans-serif;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: rgba(190, 160, 255, 0.45); }
+    &:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
   }
 }
 
@@ -661,6 +722,182 @@
   .title .tc, .title.visible .tc { transform: none; opacity: 1; transition: none; }
   .title .under path, .title.visible .under path { stroke-dashoffset: 0; transition: none; }
   .mk, .lead.visible .mk { background-size: 100% 38%; transition: none; }
-  .begin svg, .art-card .diamond, .art.active, .count .roll { animation: none; }
+  .begin .ico::after, .art-card .diamond, .art.active, .count .roll { animation: none; }
   .art-card { transform: none; }
+}
+
+
+/* ── BRMJA.TECH: its own experience, after the Brain Health story ── */
+.exp2 {
+  max-width: 54rem;
+  margin: 0 auto;
+  padding: 6rem 1.5rem 7rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border-top: 1px solid var(--line);
+}
+.company-logo.brmja { rotate: 3deg; padding: 0; overflow: hidden; background: #061a3a; }
+.company-logo.keel { rotate: -3deg; padding: 0; overflow: hidden; background: #fff; }
+.company-logo.keel img { object-fit: contain; }
+.company-logo.brmja img { object-fit: cover; transform: scale(1.04); }
+
+.exp2-title {
+  margin: 0;
+  font-size: clamp(2.4rem, 5.6vw, 4.4rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+.via {
+  margin: 0.4rem 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--grey);
+  b { color: var(--ink); font-weight: 650; }
+  img { width: 26px; height: 26px; border-radius: 8px; object-fit: cover; border: 1.5px solid var(--ink); }
+}
+.aka {
+  margin: 0.5rem 0 0;
+  font-size: 0.95rem;
+  color: var(--grey);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  b { color: var(--ink); font-weight: 650; }
+  img { width: 26px; height: 26px; border-radius: 8px; object-fit: cover; border: 1.5px solid var(--ink); }
+}
+.fb {
+  margin-top: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 1rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  color: var(--ink);
+  font: 700 13px/1 'Inter', -apple-system, sans-serif;
+  text-decoration: none;
+  transition: background 0.25s, translate 0.25s var(--spring);
+  &:hover { background: rgba(150, 205, 255, 0.5); translate: 0 -2px; }
+  &:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+}
+/* highlighter swipe behind the company name */
+.hl2 {
+  padding: 0 0.12em;
+  background: linear-gradient(104deg, transparent 0.3em, rgba(150, 205, 255, 0.6) 0.4em, rgba(150, 205, 255, 0.5) 94%, transparent 99%) 0 90% / 0% 34% no-repeat;
+  transition: background-size 0.9s var(--out) 0.6s;
+}
+.exp2-title.visible .hl2 { background-size: 100% 34%; }
+
+.exp2-card {
+  --tone: rgba(190, 160, 255, 0.45);
+  margin-top: 2.2rem;
+  width: 100%;
+  padding: 2rem clamp(1.25rem, 4vw, 2.5rem) 2.2rem;
+  text-align: left;
+  border: 1.5px solid var(--ink);
+  border-radius: 28px;
+  background: var(--bg);
+  box-shadow: 6px 6px 0 var(--ink);
+  rotate: -0.8deg;
+
+  .exp2-kicker { margin: 0 0 0.3rem; }
+  h3 {
+    margin: 0 0 0.9rem;
+    font-size: clamp(1.7rem, 3.4vw, 2.6rem);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+    span { font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive; font-weight: 700; color: var(--brand); letter-spacing: 0; font-size: 1.15em; }
+  }
+  .exp2-text {
+    margin: 0 0 1.2rem;
+    max-width: 40rem;
+    font-size: clamp(1rem, 1.3vw, 1.12rem);
+    line-height: 1.7;
+    color: var(--grey);
+    strong { color: var(--ink); font-weight: 650; }
+  }
+  .exp2-chips li { opacity: 1; scale: 1; }
+}
+:host-context([data-theme='dark']) .exp2-card { --tone: rgba(160, 130, 240, 0.4); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hl2 { background-size: 100% 34%; transition: none; }
+}
+
+
+/* ── company switcher: two slides side by side ── */
+.off { display: none !important; }
+.switch {
+  position: relative;
+  width: max-content;
+  max-width: calc(100% - 2rem);
+  margin: 6.4rem auto 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;   /* equal widths so the sliding pill lines up */
+  padding: 5px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--bg);
+  scroll-margin-top: 5.5rem;
+
+  /* the sliding highlight behind the active tab */
+  .pill-bg {
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    left: 5px;
+    width: calc((100% - 10px) / 3);
+    border-radius: 999px;
+    background: rgba(190, 160, 255, 0.55);
+    border: 1.5px solid var(--ink);
+    transition: transform 0.5s var(--spring);
+    transform: translateX(calc(var(--i, 0) * 100%));
+  }
+  .tab {
+    position: relative;
+    z-index: 1;
+    flex: 1 1 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.55rem 1.3rem 0.55rem 0.7rem;
+    border: 0;
+    background: none;
+    color: var(--grey);
+    font: 700 13px/1 'Inter', -apple-system, sans-serif;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.25s;
+    small { font-weight: 600; font-size: 0.85em; opacity: 0.7; }
+    img { width: 28px; height: 28px; border-radius: 9px; object-fit: cover; border: 1.5px solid var(--ink); background: #fff; }
+    &.on { color: var(--ink); }
+    &:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 999px; }
+  }
+}
+.switch + .intro { padding-top: 3rem; min-height: 0; }
+.switch ~ .exp2 { padding-top: 3.2rem; border-top: 0; animation: slide-in 0.6s var(--out) both; }
+.switch ~ .intro:not(.off) { animation: slide-in 0.6s var(--out) both; }
+@keyframes slide-in { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 640px) {
+  .switch .tab small { display: none; }
+}
+@media (max-width: 480px) {
+  .switch { margin-top: 5.6rem; }
+  .switch .tab { padding: 0.5rem 0.9rem 0.5rem 0.55rem; font-size: 12px; img { width: 24px; height: 24px; } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .switch .pill-bg { transition: none; }
+  .switch ~ .exp2, .switch ~ .intro:not(.off) { animation: none; }
 }

@@ -8,9 +8,9 @@ import {
   ViewChild,
 } from '@angular/core';
 import type * as THREE from 'three';
+import { ScrollGateService } from '../../core/scroll-gate.service';
 
-const easeInOutCubic = (t: number) =>
-  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const easeInOutQuad = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
 /**
@@ -55,7 +55,7 @@ export class SplitIntroComponent implements AfterViewInit, OnDestroy {
   private disposed = false;
   private cleanup: Array<() => void> = [];
 
-  constructor(private zone: NgZone) {}
+  constructor(private zone: NgZone, private gate: ScrollGateService) {}
 
   ngAfterViewInit() {
     if (typeof window === 'undefined') return;
@@ -68,11 +68,52 @@ export class SplitIntroComponent implements AfterViewInit, OnDestroy {
     this.cleanup.forEach((fn) => fn());
   }
 
+  /** resolves once the window has fully loaded */
+  private afterLoad(): Promise<void> {
+    return document.readyState === 'complete'
+      ? Promise.resolve()
+      : new Promise((res) => window.addEventListener('load', () => res(), { once: true }));
+  }
+
+  /** resolves when the browser is idle (or after `timeout` ms at the latest) */
+  /** resolves once the section is close (the last ~40% of a screen before it appears), i.e. after the hero's pinned intro has played */
+  private whenNear(): Promise<void> {
+    return new Promise((res) => {
+      const el = this.section.nativeElement;
+      if (el.getBoundingClientRect().top < window.innerHeight * 1.2) return res();
+      const io = new IntersectionObserver(
+        ([e]) => { if (e.isIntersecting) { io.disconnect(); res(); } },
+        { rootMargin: '0px 0px 40% 0px' }
+      );
+      io.observe(el);
+      this.cleanup.push(() => io.disconnect());
+    });
+  }
+
+  private idle(timeout: number): Promise<void> {
+    return new Promise((res) => {
+      // the section is about to be seen: no more politeness, just get ready
+      if (this.section.nativeElement.getBoundingClientRect().top < window.innerHeight * 1.6) return res();
+      const ric = (window as any).requestIdleCallback as undefined | ((cb: () => void, o: { timeout: number }) => void);
+      ric ? ric(() => res(), { timeout }) : setTimeout(res, 200);
+    });
+  }
+
   private async init() {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduced) return; // CSS shows the statement statically
 
+    // Heavy start-up work (download + parse three.js, create the WebGL context, compile shaders) must not land while the
+    // visitor is on the hero: it waits for the page to finish loading, then for the section to be about a screen away,
+    // and then runs in idle moments.
+    await this.afterLoad();
+    await this.whenNear();      // never while the visitor is still on the hero
+    if (this.disposed) return;
+    await this.idle(1500);
+    if (this.disposed) return;
+
     const T = await import('three');
+    await this.idle(1000);
     if (this.disposed) return;
 
     const canvas = this.canvas.nativeElement;
@@ -93,6 +134,8 @@ export class SplitIntroComponent implements AfterViewInit, OnDestroy {
       return;
     }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    await this.idle(400);                       // context created: let the page breathe before building the scene
+    if (this.disposed) return;
     // Pencil-sketch look: graphite hatching that gets denser in the shade, plus a re-traced outline
     const uniforms = {
       uPaper: { value: new T.Color() },
@@ -189,6 +232,8 @@ export class SplitIntroComponent implements AfterViewInit, OnDestroy {
     const group = new T.Group();
     group.add(left, right);
     scene.add(group);
+    await this.idle(400);                       // scene built: separate the observers and shader compile from it
+    if (this.disposed) return;
 
     const resize = () => {
       const { clientWidth: w, clientHeight: h } = stage;
@@ -208,12 +253,21 @@ export class SplitIntroComponent implements AfterViewInit, OnDestroy {
 
     let target = 0;
     let progress = 0;
+    let gateArmed = true;
     let enterTarget = 0;   // 0 → 1 while the section scrolls into view (A appears, still whole)
     let enter = 0;
     const onScroll = () => {
       const rect = section.getBoundingClientRect();
       const track = rect.height - window.innerHeight;
+      const prevTarget = target;
       target = clamp01(track > 0 ? -rect.top / track : 0);
+      // checkpoint: the statement has just finished writing itself. Hold downward scrolling long enough to read it.
+      const WRITTEN = 0.72;
+      if (target >= WRITTEN && prevTarget < WRITTEN && gateArmed) {
+        gateArmed = false;
+        this.gate.lock(2600);
+      }
+      if (target < WRITTEN - 0.2) gateArmed = true;
       enterTarget = clamp01(1 - rect.top / window.innerHeight);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -232,18 +286,22 @@ export class SplitIntroComponent implements AfterViewInit, OnDestroy {
       elapsed += delta;
       const time = elapsed;
 
-      // Chase the scroll target (frame-rate independent), then ease for a fluid split
-      progress += (target - progress) * (1 - Math.exp(-delta * 6));
-      enter += (enterTarget - enter) * (1 - Math.exp(-delta * 5));
+      // Chase the scroll target quickly (frame-rate independent): a short lag keeps it fluid without feeling sluggish
+      progress += (target - progress) * (1 - Math.exp(-delta * 12));
+      enter += (enterTarget - enter) * (1 - Math.exp(-delta * 9));
       const appear = 1 - Math.pow(1 - enter, 3);   // easeOutCubic: the whole A pops into view first
       uniforms.uAppear.value = appear;
       lineMats.forEach(({ mat, base }) => (mat.opacity = base * appear));
-      const eased = easeInOutCubic(progress);
+      // the whole split now plays out in the first ~70% of the pinned scroll, with a gentler ease than cubic
+      const fast = clamp01(progress / 0.7);
+      const eased = easeInOutQuad(fast);
 
-      stage.style.setProperty('--reveal', String(clamp01((eased - 0.45) / 0.55)));
+      stage.style.setProperty('--reveal', String(clamp01((eased - 0.3) / 0.6)));
+      // handwritten "scroll" cue: visible once the whole A has appeared, gone as soon as it starts to split
+      stage.style.setProperty('--hint', String(clamp01((appear - 0.6) / 0.4) * clamp01(1 - fast * 10)));
 
       // effects follow the scroll directly (not the eased split), so they keep appearing as you scroll down
-      fx.style.setProperty('--split', progress.toFixed(4));
+      fx.style.setProperty('--split', fast.toFixed(4));
 
       // fully split, the halves sit either side of the sentence card
       const split = eased * Math.min(7.4, 0.4 * 11.55 * camera.aspect);
@@ -257,6 +315,11 @@ export class SplitIntroComponent implements AfterViewInit, OnDestroy {
 
       renderer.render(scene, camera);
     };
+    await this.idle(1000);
+    if (this.disposed) return;
+    // KHR_parallel_shader_compile: the GPU driver compiles the shaders in the background instead of freezing the first frame
+    try { await (renderer as any).compileAsync(scene, camera); } catch { /* older GPUs compile on the first draw instead */ }
+    if (this.disposed) return;
     tick();
 
     this.cleanup.push(() => {
