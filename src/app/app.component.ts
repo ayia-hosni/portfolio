@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { HeroComponent } from './components/hero/hero.component';
 import { SplitIntroComponent } from './components/split-intro/split-intro.component';
@@ -7,7 +7,7 @@ import { ExperienceComponent } from './components/experience/experience.componen
 import { ProjectsComponent } from './components/projects/projects.component';
 import { SectionNavComponent } from './components/section-nav/section-nav.component';
 import { ContactComponent } from './components/contact/contact.component';
-import { VisitorTrackingService } from './core/visitor-tracking.service';
+import { AnalyticsService } from './core/analytics.service';
 
 @Component({
   selector: 'app-root',
@@ -54,8 +54,29 @@ import { VisitorTrackingService } from './core/visitor-tracking.service';
   `,
   styles: [`.pencil-defs { position: absolute; } main { display: flex; flex-direction: column; }`],
 })
-export class AppComponent {
-  constructor(tracking: VisitorTrackingService) {
-    tracking.trackPageView();
+export class AppComponent implements AfterViewInit, OnDestroy {
+  private io?: IntersectionObserver;
+
+  constructor(private analytics: AnalyticsService) {}
+
+  /** one `section-view` per section per session: the funnel About → Experience → Projects → Contact */
+  ngAfterViewInit() {
+    if (typeof IntersectionObserver === 'undefined') return;
+    this.io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        this.analytics.trackOnce('section-view', { section: (e.target as HTMLElement).id });
+        this.io?.unobserve(e.target);
+      }),
+      { threshold: 0.35 }
+    );
+    ['about', 'experience', 'work', 'contact'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) this.io!.observe(el);
+    });
+  }
+
+  ngOnDestroy() {
+    this.io?.disconnect();
   }
 }

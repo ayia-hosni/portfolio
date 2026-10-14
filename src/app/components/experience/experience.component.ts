@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, ViewChild, signal } from '@angular/core';
 import { RevealDirective } from '../../directives/reveal.directive';
+import { AnalyticsService } from '../../core/analytics.service';
 
 interface Chapter {
   kicker: string;      // the story beat
@@ -171,7 +172,7 @@ export class ExperienceComponent implements AfterViewInit, OnDestroy {
   private countFrames = new Map<number, number>();
   private static readonly STATIC_LAYOUT = '(max-height: 520px), (prefers-reduced-motion: reduce)';
 
-  constructor(private zone: NgZone) {}
+  constructor(private zone: NgZone, private analytics: AnalyticsService) {}
 
   ngAfterViewInit() {
     this.zone.runOutsideAngular(() => {
@@ -187,6 +188,9 @@ export class ExperienceComponent implements AfterViewInit, OnDestroy {
           last = step;
           this.zone.run(() => this.active.set(step));
           this.countMetrics(step);
+          // how far into the story the visitor got (once per session each); only while the story is open
+          if (this.storyOpen() && step >= 2) this.analytics.trackOnce('story-depth', { chapter: 3 });
+          if (this.storyOpen() && step >= total - 1) this.analytics.trackOnce('story-depth', { chapter: total });
         }
       };
       const mq = window.matchMedia(ExperienceComponent.STATIC_LAYOUT);

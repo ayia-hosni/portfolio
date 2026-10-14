@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RevealDirective } from '../../directives/reveal.directive';
+import { AnalyticsService } from '../../core/analytics.service';
 import { ArchitectureStoryComponent } from '../architecture-story/architecture-story.component';
 import { ArchitectureDiagram, HEALTHCARE_PLATFORM_DIAGRAMS } from './architecture-diagrams.data';
 
@@ -25,6 +26,7 @@ interface Project {
 export class ProjectsComponent implements AfterViewInit, OnDestroy {
   private host = inject(ElementRef<HTMLElement>);
   private zone = inject(NgZone);
+  private analytics = inject(AnalyticsService);
 
   /** -1 = the card's intro; 0..n-1 = which diagram slide is showing */
   step = signal(-1);
@@ -94,6 +96,9 @@ export class ProjectsComponent implements AfterViewInit, OnDestroy {
         const slot = Math.min(total - 1, Math.floor(progress * total));
         const step = slot - 1;
         if (step !== last) { last = step; this.zone.run(() => this.step.set(step)); }
+        // how far into the diagrams the visitor got (once per session each)
+        if (this.archOpen() && step >= 2) this.analytics.trackOnce('architecture-depth', { slide: 3 });
+        if (this.archOpen() && step >= total - 2) this.analytics.trackOnce('architecture-depth', { slide: total - 1 });
       };
       window.addEventListener('scroll', onScroll, { passive: true });
       window.addEventListener('resize', onScroll);
