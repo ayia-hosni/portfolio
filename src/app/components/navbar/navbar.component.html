@@ -33,7 +33,7 @@
         }
       </button>
 
-      <a class="cta" href="#contact" (click)="go($event, 'contact')">
+      <a class="cta" data-umami-event="nav-lets-talk" href="#contact" (click)="go($event, 'contact')">
         Let's talk
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
       </a>
@@ -60,7 +60,7 @@
         </li>
       }
     </ul>
-    <a class="cta full" href="#contact" (click)="go($event, 'contact')" [style.--i]="links.length">
+    <a class="cta full" data-umami-event="nav-lets-talk-mobile" href="#contact" (click)="go($event, 'contact')" [style.--i]="links.length">
       Let's talk
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
     </a>

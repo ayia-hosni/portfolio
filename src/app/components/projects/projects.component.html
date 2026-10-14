@@ -67,7 +67,7 @@
       @if (p.links?.length) {
         <div class="links">
           @for (l of p.links; track l.url) {
-            <a class="btn-pill" [href]="l.url" target="_blank" rel="noopener noreferrer">
+            <a class="btn-pill" [href]="l.url" target="_blank" rel="noopener noreferrer" [attr.data-umami-event]="'project-link'" [attr.data-umami-event-project]="p.title" [attr.data-umami-event-link]="l.label">
               {{ l.label }}
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
             </a>
@@ -76,7 +76,7 @@
       }
 
       @if (p.architectureDiagrams?.length) {
-        <button type="button" class="arch-btn" [class.open]="archOpen()" [attr.aria-expanded]="archOpen()" (click)="archOpen() ? hideArchitecture() : openArchitecture()">
+        <button type="button" class="arch-btn" [class.open]="archOpen()" [attr.aria-expanded]="archOpen()" [attr.data-umami-event]="archOpen() ? 'architecture-hide' : 'architecture-view'" (click)="archOpen() ? hideArchitecture() : openArchitecture()">
           <span class="ico" aria-hidden="true">
             @if (archOpen()) {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>

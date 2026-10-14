@@ -1,15 +1,15 @@
 <!-- company switcher: two slides side by side; only the active company's content is in the page -->
 <div class="switch" id="experience" role="tablist" aria-label="Choose a company">
   <i class="pill-bg" [style.--i]="company() === 'bh' ? 0 : company() === 'brmja' ? 1 : 2" aria-hidden="true"></i>
-  <button type="button" role="tab" class="tab" [class.on]="company() === 'bh'" [attr.aria-selected]="company() === 'bh'" (click)="pick('bh')">
+  <button type="button" role="tab" class="tab" [class.on]="company() === 'bh'" [attr.aria-selected]="company() === 'bh'" data-umami-event="company-brain-health" (click)="pick('bh')">
     <img src="brain_health_usa_logo.jpeg" alt="" width="28" height="28" />
     <span>Brain Health USA <small>(via Idaam Cloud)</small></span>
   </button>
-  <button type="button" role="tab" class="tab" [class.on]="company() === 'brmja'" [attr.aria-selected]="company() === 'brmja'" (click)="pick('brmja')">
+  <button type="button" role="tab" class="tab" [class.on]="company() === 'brmja'" [attr.aria-selected]="company() === 'brmja'" data-umami-event="company-ofoq" (click)="pick('brmja')">
     <img src="ofoq.png" alt="" width="28" height="28" />
     <span>OFOQ <small>(BRMJA.TECH)</small></span>
   </button>
-  <button type="button" role="tab" class="tab" [class.on]="company() === 'keel'" [attr.aria-selected]="company() === 'keel'" (click)="pick('keel')">
+  <button type="button" role="tab" class="tab" [class.on]="company() === 'keel'" [attr.aria-selected]="company() === 'keel'" data-umami-event="company-keelworks" (click)="pick('keel')">
     <img src="keelworks.jpeg" alt="" width="28" height="28" />
     <span>KeelWorks</span>
   </button>
@@ -39,7 +39,7 @@
     <strong><span class="mk">50+ clinics</span></strong>, handling about <strong><span class="mk">1,500–2,000 appointments a day</span></strong>.
     Here is how it came together, one chapter at a time.
   </p>
-  <button class="begin reveal delay-5" appReveal type="button" [class.open]="storyOpen()" [attr.aria-expanded]="storyOpen()" (click)="storyOpen() ? hideStory() : start()">
+  <button class="begin reveal delay-5" appReveal type="button" [class.open]="storyOpen()" [attr.aria-expanded]="storyOpen()" [attr.data-umami-event]="storyOpen() ? 'story-hide' : 'story-start'" (click)="storyOpen() ? hideStory() : start()">
     <span class="ico" aria-hidden="true">
       @if (storyOpen()) {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>
@@ -141,7 +141,7 @@
     <img src="brmja_tech.jpeg" alt="BRMJA.TECH logo" width="26" height="26" loading="lazy" />
     formerly <b>BRMJA.TECH</b> · now OFOQ Software Development
   </p>
-  <a class="fb reveal delay-2" appReveal href="https://www.facebook.com/brmja.tech" target="_blank" rel="noopener noreferrer">
+  <a class="fb reveal delay-2" appReveal href="https://www.facebook.com/brmja.tech" target="_blank" rel="noopener noreferrer" data-umami-event="ofoq-facebook">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.69.24 2.69.24v2.97h-1.52c-1.49 0-1.96.93-1.96 1.88v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z"/></svg>
     <span>Facebook page</span>
   </a>
