@@ -27,7 +27,7 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 })
 export class SplitIntroComponent implements AfterViewInit, OnDestroy {
   readonly text =
-    'I team up with founders and engineering teams to design, build, and run backend systems that stay up — combining clean architecture, fast delivery, and dashboards that tell the truth.';
+    'I team up with founders and engineering teams to design, build, and run backend systems that stay up. Clean architecture, fast delivery, and dashboards that tell the truth.';
   // Clouds fade in and drift as the split progresses (--delay staggers when each appears)
   readonly clouds = [
     { top: 10, left: 6, w: 280, drift: 160, delay: 0.03, tint: 'rgba(150, 205, 255, 0.4)' },
@@ -189,7 +189,7 @@ export class SplitIntroComponent implements AfterViewInit, OnDestroy {
         }`,
     });
 
-    const lineMats: Array<{ mat: InstanceType<typeof T.LineBasicMaterial>; base: number }> = [];
+    const lineMats: Array<{ mat: InstanceType<typeof T.MeshBasicMaterial>; base: number }> = [];
     const applyTheme = () => {
       const dark = document.documentElement.getAttribute('data-theme') === 'dark';
       uniforms.uPaper.value.set(dark ? 0x1c1c22 : 0xeef3ff);   // pastel blue-white paper / dark paper
@@ -197,34 +197,48 @@ export class SplitIntroComponent implements AfterViewInit, OnDestroy {
       lineMats.forEach(({ mat }) => mat.color.set(dark ? 0xf2f2f2 : 0x2c2c36));
     };
 
-    // Re-traced outline: 3 jittered copies of the edges, like going over a line several times
-    const makeHalf = (geom: InstanceType<typeof T.ExtrudeGeometry>, seed: number) => {
-      const mesh = new T.Mesh(geom, material);
-      const edges = new T.EdgesGeometry(geom, 30);
-      // jitter is a function of the vertex *position*, so a corner shared by two segments
-      // moves as one point and the outline stays continuous
+    // The A is hand-drawn: each stroke is a fat crayon stick following a slightly wobbly path with rounded ends, so it
+    // reads as lettering, not as a font. Each half owns its own strokes, so the A splits cleanly down the middle.
+    const geoms: any[] = [];   // three.js's geometry generics are noisy: these are plain BufferGeometry objects
+    const makeHalf = (isLeft: boolean, seed: number) => {
+      const half = new T.Group();
+      // jitter depends on the vertex position, so the outline is continuous and not random per frame
       const rand = (x: number, y: number, z: number, k: number) => {
         const n = Math.sin(Math.round(x * 100) * 12.9898 + Math.round(y * 100) * 78.233 + Math.round(z * 100) * 37.719 + k * 19.19 + seed * 5.5) * 43758.5453;
         return n - Math.floor(n);
       };
-      [{ j: 0.0, o: 0.95 }, { j: 0.035, o: 0.5 }, { j: 0.06, o: 0.3 }].forEach(({ j, o }, k) => {
-        const g = edges.clone();
-        const pos = g.attributes['position'];
+      const addPart = (geo: any) => {
+        geoms.push(geo);
+        half.add(new T.Mesh(geo, material));
+        // pencil outline: the same shape pushed outward along its normals with a little tremor, drawn behind
+        const hull = geo.clone();
+        const pos: any = hull.attributes['position'];
+        const nor: any = hull.attributes['normal'];
         for (let i = 0; i < pos.count; i++) {
           const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-          pos.setXYZ(i, x + (rand(x, y, z, k) - 0.5) * j, y + (rand(x, y, z, k + 7) - 0.5) * j, z);
+          const push = 0.04 + rand(x, y, z, 3) * 0.025;
+          pos.setXYZ(i, x + nor.getX(i) * push, y + nor.getY(i) * push, z + nor.getZ(i) * push);
         }
-        const mat = new T.LineBasicMaterial({ transparent: true, opacity: 0 });
-        lineMats.push({ mat, base: o });
-        mesh.add(new T.LineSegments(g, mat));
-      });
-      return mesh;
+        geoms.push(hull);
+        const mat = new T.MeshBasicMaterial({ transparent: true, opacity: 0, side: T.BackSide, depthWrite: false });
+        lineMats.push({ mat, base: 0.9 });
+        half.add(new T.Mesh(hull, mat));
+      };
+      for (const { pts, r } of this.strokes(isLeft)) {
+        const curve = new T.CatmullRomCurve3(pts.map(([x, y]) => new T.Vector3(x, y, 0)));
+        addPart(new T.TubeGeometry(curve, 48, r, 14, false));
+        // rounded ends, like the tip of a crayon
+        for (const end of [pts[0], pts[pts.length - 1]]) {
+          const cap = new T.SphereGeometry(r, 14, 10);
+          cap.translate(end[0], end[1], 0);
+          addPart(cap);
+        }
+      }
+      return half;
     };
 
-    const leftGeom = this.halfGeometry(T, true);
-    const rightGeom = this.halfGeometry(T, false);
-    const left = makeHalf(leftGeom, 1);
-    const right = makeHalf(rightGeom, 2);
+    const left = makeHalf(true, 1);
+    const right = makeHalf(false, 2);
     applyTheme();
     const themeObserver = new MutationObserver(applyTheme);
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -327,8 +341,7 @@ export class SplitIntroComponent implements AfterViewInit, OnDestroy {
       io.disconnect();
       resizeObserver.disconnect();
       themeObserver.disconnect();
-      leftGeom.dispose();
-      rightGeom.dispose();
+      geoms.forEach((g) => g.dispose());
       material.dispose();
       lineMats.forEach(({ mat }) => mat.dispose());
       renderer.dispose();
@@ -336,39 +349,19 @@ export class SplitIntroComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Left or right half of an extruded letter A, cut along x = 0.
-   * Both halves share the same coordinates (no per-half centering), so at rest they
-   * fit together into one A: flat apex, two slanted legs, a crossbar and a triangular counter.
+   * The hand-drawn A, as crayon strokes: two legs (a little different, a little bowed), and a crossbar that tilts.
+   * The left legs and left crossbar belong to the left half, the others to the right, and the strokes meet on x = 0,
+   * so at rest the two halves read as one A, and apart each half is still a believable bit of lettering.
    */
-  private halfGeometry(T: typeof THREE, isLeft: boolean) {
-    // outline of the left half; the right half is its mirror image
-    const pts: Array<[number, number]> = [
-      [0, 2.5],          // top, on the cut
-      [-0.45, 2.5],      // top-left of the apex
-      [-1.6, -2.5],      // outer foot
-      [-0.98, -2.5],     // inner foot
-      [-0.658, -1.1],    // inner leg, under the crossbar
-      [0, -1.1],         // bottom of the crossbar, on the cut
-      [0, -0.55],        // top of the crossbar, on the cut
-      [-0.5315, -0.55],  // counter (hole) bottom corner
-      [0, 1.761],        // counter apex, on the cut
-    ];
-    const shape = new T.Shape();
-    pts.forEach(([x, y], i) => {
-      const X = isLeft ? x : -x;
-      i === 0 ? shape.moveTo(X, y) : shape.lineTo(X, y);
-    });
-    shape.closePath();
-
-    const geom = new T.ExtrudeGeometry(shape, {
-      steps: 1,
-      depth: 0.7,
-      bevelEnabled: true,
-      bevelThickness: 0.08,
-      bevelSize: 0.05,     // slightly overlaps at the cut so the seam is invisible
-      bevelSegments: 4,
-    });
-    geom.translate(0, 0, -0.35); // center depth only, keep x/y so the halves line up
-    return geom;
+  private strokes(isLeft: boolean): Array<{ pts: Array<[number, number]>; r: number }> {
+    return isLeft
+      ? [
+          { pts: [[-0.02, 2.55], [-0.62, 1.2], [-1.06, -0.25], [-1.6, -2.5]], r: 0.24 },     // left leg
+          { pts: [[-1.2, -0.78], [-0.6, -0.65], [0.0, -0.6]], r: 0.19 },                       // left half of the crossbar
+        ]
+      : [
+          { pts: [[0.04, 2.5], [0.6, 1.05], [1.12, -0.4], [1.64, -2.55]], r: 0.23 },          // right leg
+          { pts: [[0.0, -0.6], [0.6, -0.72], [1.24, -0.92]], r: 0.19 },                        // right half of the crossbar (tilts down)
+        ];
   }
 }

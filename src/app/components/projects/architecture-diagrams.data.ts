@@ -53,7 +53,7 @@ export const HEALTHCARE_PLATFORM_DIAGRAMS: ArchitectureDiagram[] = [
     GraphQL -.->|REST| Appointment
     GraphQL -.->|REST| Billing
 
-    subgraph Internal["Internal-only — no Ingress route"]
+    subgraph Internal["Internal-only, no Ingress route"]
         EMR["emr-service"]
         Billing["billing-service"]
         Notification["notification-service"]
@@ -113,7 +113,7 @@ export const HEALTHCARE_PLATFORM_DIAGRAMS: ArchitectureDiagram[] = [
     id: 'service-domains',
     title: 'Service Architecture',
     summary:
-      'The nine domain services grouped by responsibility rather than listed flat — identity, clinical, scheduling, financial, and supporting/cross-cutting.',
+      'The nine domain services grouped by responsibility rather than listed flat: identity, clinical, scheduling, financial, and supporting/cross-cutting.',
     definition: `flowchart LR
     subgraph Identity["Identity & Access"]
         IdentitySvc["identity-service"]
@@ -147,7 +147,7 @@ export const HEALTHCARE_PLATFORM_DIAGRAMS: ArchitectureDiagram[] = [
     id: 'sync-communication',
     title: 'Synchronous Communication (gRPC)',
     summary:
-      'Patient and Doctor services each expose two purpose-built gRPC contracts — a narrow existence check for booking validation, and a wider directory read for the GraphQL gateway — rather than one general-purpose service.',
+      'Patient and Doctor services each expose two purpose-built gRPC contracts: a narrow existence check for booking validation, and a wider directory read for the GraphQL gateway, rather than one general-purpose service.',
     definition: `flowchart LR
     Appointment["appointment-service"] -->|"gRPC PatientLookup\\n(exists check)"| Patient["patient-service"]
     Appointment -->|"gRPC DoctorLookup\\n(exists check)"| Doctor["doctor-service"]
@@ -163,7 +163,7 @@ export const HEALTHCARE_PLATFORM_DIAGRAMS: ArchitectureDiagram[] = [
     id: 'event-topology',
     title: 'Event-Driven Architecture',
     summary:
-      'Kafka is the cross-service event backbone, written through a transactional outbox. RabbitMQ is scoped to a single service — it is not a shared bus between services.',
+      'Kafka is the cross-service event backbone, written through a transactional outbox. RabbitMQ is scoped to a single service, so it is not a shared bus between services.',
     definition: `flowchart LR
     Patient["patient-service"] -->|patient.events| Kafka[("Kafka")]
     Doctor["doctor-service"] -->|doctor.events| Kafka
@@ -185,7 +185,7 @@ export const HEALTHCARE_PLATFORM_DIAGRAMS: ArchitectureDiagram[] = [
     id: 'data-architecture',
     title: 'Data Architecture',
     summary:
-      'Database-per-service, plus polyglot persistence: no service reaches into another’s tables — all cross-service data access goes through APIs, gRPC, or events.',
+      'Database-per-service, plus polyglot persistence: no service reaches into another’s tables, and all cross-service data access goes through APIs, gRPC, or events.',
     definition: `flowchart TB
     subgraph Services
         Identity["identity-service"]
@@ -196,7 +196,7 @@ export const HEALTHCARE_PLATFORM_DIAGRAMS: ArchitectureDiagram[] = [
         Billing["billing-service"]
     end
 
-    subgraph PostgreSQL["PostgreSQL — one logical DB per service"]
+    subgraph PostgreSQL["PostgreSQL, one logical DB per service"]
         IdentityDB[("identity_db")]
         PatientDB[("patient_db")]
         DoctorDB[("doctor_db")]
@@ -249,7 +249,7 @@ export const HEALTHCARE_PLATFORM_DIAGRAMS: ArchitectureDiagram[] = [
     Internet["Internet"] --> LB["Load Balancer"]
     LB --> Ingress["NGINX Ingress Controller"]
 
-    subgraph Cluster["Kubernetes Cluster — healthcare-platform namespace"]
+    subgraph Cluster["Kubernetes Cluster, healthcare-platform namespace"]
         Ingress --> Frontend["frontend"]
         Ingress --> Identity["identity-service"]
         Ingress --> Patient["patient-service"]
@@ -279,7 +279,7 @@ export const HEALTHCARE_PLATFORM_DIAGRAMS: ArchitectureDiagram[] = [
     id: 'observability',
     title: 'Observability Architecture',
     summary:
-      'All ten services expose Prometheus metrics and Actuator health checks wired to Kubernetes liveness/readiness probes — the part of the observability stack that is fully live today.',
+      'All ten services expose Prometheus metrics and Actuator health checks wired to Kubernetes liveness/readiness probes, the part of the observability stack that is fully live today.',
     definition: `flowchart LR
     Services["Spring Boot Services\\n(all 10)"]
 

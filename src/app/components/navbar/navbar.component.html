@@ -1,9 +1,8 @@
 <header class="bar" [class.scrolled]="scrolled()" [class.open]="open()">
   <nav class="pill" aria-label="Main">
+    <!-- hand-traced outline: three coloured pencils, each a little off from the last -->
+    <span class="pnc" aria-hidden="true"><i></i><i></i><i></i></span>
     <a class="logo" href="#top" (click)="go($event, 'top')" aria-label="Aya Hosni, back to the top">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-      </svg>
       <span class="word">Aya</span>
     </a>
 
@@ -49,6 +48,7 @@
 
   <!-- phones: the links open as a card under the pill -->
   <div class="panel" id="mobile-menu" [class.show]="open()" [attr.aria-hidden]="!open()" [attr.inert]="open() ? null : ''">
+    <span class="pnc" aria-hidden="true"><i></i><i></i><i></i></span>
     <ul>
       @for (l of links; track l.id; let i = $index) {
         <li [style.--i]="i">

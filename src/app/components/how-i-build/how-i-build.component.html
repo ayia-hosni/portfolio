@@ -1,11 +1,24 @@
 <section class="intro" id="about">
-  <span class="tag reveal" appReveal>Systems &amp; Architecture</span>
+  <span class="tag reveal" appReveal>systems &amp; architecture</span>
   <h2 class="lead reveal delay-1" appReveal>
     I build backend systems that hold up in production under real traffic.
   </h2>
   <p class="sub reveal delay-2" appReveal>
     Distributed services in Java and PHP, designed to stay consistent, observable and easy to change.
   </p>
+  <!-- full-stack, but the depth is below the water -->
+  <figure class="berg reveal delay-3" appReveal role="img" aria-label="An iceberg: frontend is the small part above the water; backend, devops, infrastructure and data are the large part below it">
+    <svg class="art sketchy" viewBox="0 0 320 250" fill="none" aria-hidden="true">
+      <path pathLength="1" class="dim" d="M4 78 q14 -7 28 0 t28 0 t28 0 t28 0 t28 0 t28 0 t28 0 t28 0 t28 0 t28 0 t28 0 t12 0" />
+      <path pathLength="1" class="ln fb" d="M136 78 L148 44 L158 56 L168 22 L184 60 L192 78 Z" />
+      <text class="lbl fade" x="160" y="14">frontend</text>
+      <path pathLength="1" class="ln fp" d="M118 82 C92 96 70 120 66 150 C62 184 96 214 146 226 C196 238 246 214 258 176 C268 144 244 108 208 84 C176 90 144 90 118 82 Z" />
+      <text class="lbl big fade" x="162" y="138">backend</text>
+      <text class="lbl fade" x="162" y="166">devops · infra</text>
+      <text class="lbl fade" x="162" y="190">data</text>
+    </svg>
+    <figcaption>above the water: what you see. below: what keeps it running.</figcaption>
+  </figure>
   <button class="down reveal delay-3" appReveal type="button" aria-label="Scroll to how I build" (click)="scrollToSteps()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M12 5v14" /><path d="m19 12-7 7-7-7" />
@@ -19,7 +32,7 @@
 
       <!-- left: section label + live progress -->
       <aside class="aside">
-        <span class="tag small">How I build</span>
+        <span class="tag small">how I build</span>
         <div class="counter" aria-hidden="true">
           <b class="pencil sketchy">{{ '0' + (active() + 1) }}</b><span>/ {{ '0' + steps.length }}</span>
         </div>
@@ -27,6 +40,12 @@
           <path class="track" pathLength="1" d="M3 6 C20 2 38 9 58 5 S96 2 116 6 S156 9 173 4" />
           <path class="fill" pathLength="1" d="M3 6 C20 2 38 9 58 5 S96 2 116 6 S156 9 173 4" />
         </svg>
+
+        <!-- big screens: one system drawn step by step (each step adds a layer), with the decision behind it on a sticky note -->
+        <ng-container *ngTemplateOutlet="sysSvg; context: { live: true }" />
+        @for (n of [active()]; track n) {
+          <p class="sticky"><b>{{ steps[n].noteTitle }}</b>{{ steps[n].note }}</p>
+        }
       </aside>
 
       <!-- right: steps, each with its own marker so it always lines up with its title -->
@@ -165,3 +184,81 @@
     </div>
   </div>
 </section>
+
+<!-- every other screen: the same drawing as a finale after the four steps, drawn when it scrolls into view -->
+<section class="finale" aria-label="The whole system">
+  <p class="tag reveal" appReveal>the whole sketch</p>
+  <div class="finale-art" appReveal>
+    <ng-container *ngTemplateOutlet="sysSvg; context: { live: false }" />
+  </div>
+  <ul class="finale-notes">
+    @for (s of steps; track s.num; let i = $index) {
+      <li [style.--r]="(i % 2 === 0 ? -1.4 : 1.2) + 'deg'"><b>{{ s.noteTitle }}</b>{{ s.note }}</li>
+    }
+  </ul>
+</section>
+
+<ng-template #sysSvg let-live="live">
+        <svg class="art sys sketchy" viewBox="0 -14 360 340" fill="none" aria-hidden="true">
+          <g class="layer" [class.on]="live && active() >= 0">
+            <circle pathLength="1" class="ln fb" cx="24" cy="46" r="11" />
+            <text class="lbl fade" x="24" y="76">client</text>
+            <path pathLength="1" class="ln" d="M37 46 H46 M41 41 L47 46 L41 51" />
+            <rect pathLength="1" class="ln fp" x="48" y="26" width="46" height="40" rx="9" />
+            <text class="lbl fade" x="71" y="51">API</text>
+            <path pathLength="1" class="ln" d="M94 46 H110 M104 41 L110 46 L104 51" />
+            <rect pathLength="1" class="ln fb" x="112" y="22" width="58" height="48" rx="10" />
+            <text class="lbl fade" x="141" y="50">service A</text>
+            <rect pathLength="1" class="ln fp" x="272" y="22" width="62" height="48" rx="10" />
+            <text class="lbl fade" x="303" y="50">service B</text>
+            <path pathLength="1" class="ln" d="M127 92 C127 86 155 86 155 92 C155 98 127 98 127 92 M127 92 V108 C127 114 155 114 155 108 V92" />
+            <path pathLength="1" class="dim" d="M141 70 V86" />
+            <path pathLength="1" class="ln" d="M289 92 C289 86 317 86 317 92 C317 98 289 98 289 92 M289 92 V108 C289 114 317 114 317 108 V92" />
+            <path pathLength="1" class="dim" d="M303 70 V86" />
+            <text class="lbl small fade" x="141" y="130">own data</text>
+            <text class="lbl small fade" x="303" y="130">own data</text>
+          </g>
+          <g class="layer" [class.on]="live && active() >= 1">
+            <rect pathLength="1" class="ln fp" x="180" y="34" width="18" height="24" rx="5" />
+            <rect pathLength="1" class="ln fb" x="202" y="34" width="18" height="24" rx="5" />
+            <rect pathLength="1" class="ln fp" x="224" y="34" width="18" height="24" rx="5" />
+            <text class="lbl fade" x="211" y="22">Kafka</text>
+            <path pathLength="1" class="ln" d="M170 46 H178 M173 42 L179 46 L173 50" />
+            <path pathLength="1" class="ln" d="M242 46 H270 M264 41 L270 46 L264 51" />
+            <path pathLength="1" class="ln fp" d="M197 92 C197 86 225 86 225 92 C225 98 197 98 197 92 M197 92 V108 C197 114 225 114 225 108 V92" />
+            <path pathLength="1" class="dim" d="M211 58 V86" />
+            <text class="lbl fade" x="211" y="126">Redis</text>
+            <text class="lbl small fade" x="211" y="142">idempotent</text>
+          </g>
+          <g class="layer" [class.on]="live && active() >= 2">
+            <rect class="bd fade" x="4" y="-8" width="352" height="156" rx="14" />
+            <text class="lbl fade" x="300" y="-13">AWS EKS</text>
+            <rect pathLength="1" class="ln fb" x="2" y="170" width="50" height="28" rx="14" />
+            <text class="lbl fade" x="27" y="189">commit</text>
+            <path pathLength="1" class="ln" d="M52 184 H60 M56 180 L61 184 L56 188" />
+            <rect pathLength="1" class="ln fp" x="62" y="170" width="50" height="28" rx="14" />
+            <text class="lbl fade" x="87" y="189">build</text>
+            <path pathLength="1" class="ln" d="M112 184 H120 M116 180 L121 184 L116 188" />
+            <rect pathLength="1" class="ln fb" x="122" y="170" width="50" height="28" rx="14" />
+            <text class="lbl fade" x="147" y="189">test</text>
+            <path pathLength="1" class="ln" d="M172 184 H180 M176 180 L181 184 L176 188" />
+            <rect pathLength="1" class="ln fp" x="182" y="170" width="50" height="28" rx="14" />
+            <text class="lbl fade" x="207" y="189">deploy</text>
+            <path pathLength="1" class="ln" d="M232 184 C262 184 262 166 262 152 M257 158 L262 151 L267 158" />
+            <text class="lbl note left fade" x="272" y="188">no manual steps</text>
+          </g>
+          <g class="layer" [class.on]="live && active() >= 3">
+            <rect pathLength="1" class="ln fb" x="6" y="216" width="232" height="82" rx="10" />
+            <text class="lbl small left fade" x="20" y="236">latency</text>
+            <path class="bd fade" d="M18 254 H226 M18 276 H226" />
+            <path pathLength="1" class="ln accent" d="M20 290 L54 278 L88 284 L122 264 L152 270 L184 246 L218 252" />
+            <circle class="alert" cx="184" cy="246" r="5" />
+            <circle class="ring" cx="184" cy="246" r="5" />
+            <path pathLength="1" class="dim" d="M338 148 C352 200 330 262 244 262 M250 257 L243 262 L250 268" />
+            <text class="lbl small fade" x="318" y="204">metrics</text>
+            <text class="lbl fade" x="122" y="316">Prometheus → Grafana</text>
+            <text class="lbl note fade" x="296" y="288">alert fires</text>
+            <text class="lbl note fade" x="296" y="304">before the ticket</text>
+          </g>
+        </svg>
+</ng-template>

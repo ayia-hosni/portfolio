@@ -1,3 +1,5 @@
+@use '../../../styles/crayon' as c;
+
 /* Tall track: the sticky stage stays pinned while the photo glides aside */
 .hero {
   position: relative;
@@ -143,16 +145,16 @@
   border-radius: 999px;
   background: var(--tint);
   color: var(--grey);
-  font: 600 12px/1 -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-  letter-spacing: 0.04em;
+  font: 400 15px/1 var(--font-ui);
+  letter-spacing: 0.03em;
   cursor: pointer;
   transition: color 0.2s, border-color 0.2s, background 0.2s;
 
   &:hover { color: var(--ink); }
   &.on {
     color: var(--ink);
-    border-color: color-mix(in srgb, var(--brand) 55%, transparent);
-    background: color-mix(in srgb, var(--brand) 8%, var(--bg));
+    border-color: color-mix(in srgb, var(--cr-violet) 65%, transparent);
+    background: color-mix(in srgb, var(--cr-violet) 14%, var(--bg));
   }
   &:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 }
@@ -250,6 +252,8 @@
   z-index: 1;
   --pill-blue: rgba(150, 205, 255, 0.6);
   --pill-purple: rgba(190, 160, 255, 0.55);
+  --cr-violet: var(--brand);   /* the two crayons: the site's violet ... */
+  --cr-blue: #4d94ea;          /* ... and its blue (a little deeper than the pill tags so strokes and lettering show) */
   --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --out: cubic-bezier(0.2, 0.8, 0.2, 1);
   position: absolute;
@@ -261,6 +265,7 @@
 :host-context([data-theme='dark']) .hero-left {
   --pill-blue: rgba(110, 170, 240, 0.42);
   --pill-purple: rgba(160, 130, 240, 0.45);
+  --cr-blue: #6eaaf0;
 }
 /* invisible until revealed, so it can't steal clicks while the welcome is showing */
 .stage:not(.past-welcome) .hero-left { pointer-events: none; }
@@ -288,12 +293,14 @@
 
 .label {
   margin: 0;
-  font-family: 'SF Mono', 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
-  font-size: 12px;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
   font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--grey);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--cr-violet);
+  rotate: -2deg;
+  transform-origin: left center;
 }
 
 .label i { font-style: normal; color: var(--brand); }
@@ -304,10 +311,10 @@
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-family: var(--font-ui);
   font-size: clamp(24px, 2.6vw, 40px);
   font-weight: 700;
-  letter-spacing: -0.035em;
+  letter-spacing: 0;
   line-height: 1.18;
   text-wrap: balance;
   -webkit-font-smoothing: antialiased;
@@ -321,6 +328,7 @@
   padding: 0.14em 0.7em 0.2em 0.1em;
   margin: -0.14em -0.7em -0.2em -0.1em;
 }
+.row:first-child { padding: 0.4em 0.9em 0.4em 0.45em; margin: -0.4em -0.9em -0.4em -0.45em; }   /* room for the crayon edge inside the slide-up mask */
 .in {
   display: inline-block;
   transform: translateY(115%);
@@ -345,7 +353,18 @@
   transition: scale 0.3s ease, rotate 0.3s ease, opacity 0.2s ease;
 
   color: var(--ink);
-  &.name { font-size: 1.8em; font-weight: 800; letter-spacing: -0.04em; word-spacing: 0.06em; background: var(--pill-blue); }
+  &.name {
+    font-family: var(--font-display);
+    font-size: 1.9em;
+    font-weight: 700;
+    letter-spacing: 0;
+    word-spacing: 0.06em;
+    border: 0;
+    background:
+      repeating-linear-gradient(-55deg, color-mix(in srgb, var(--cr-violet) 30%, transparent) 0 2.2px, transparent 2.2px 8px),
+      var(--pill-blue);
+    @include c.crayon-edge(var(--cr-violet), var(--cr-blue));
+  }
   &.word { font-weight: 700; background: var(--pill-purple); margin-left: 0.1em; }
 }
 .details-in .pill {
@@ -363,13 +382,15 @@
   font-family: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
   font-size: clamp(54px, 5.7vw, 92px);
   font-weight: 700;
-  letter-spacing: -0.005em;
+  letter-spacing: 0;
   line-height: 0.95;
   color: var(--ink);
   -webkit-text-stroke: 0.028em currentColor;   /* fattens the handwriting into a chunky brush */
   paint-order: stroke fill;
 }
 .row.big + .row.big { margin-top: -0.2em; }
+/* the first line of the headline: charcoal crayon */
+.crayon-text { display: inline-block; filter: url(#crayonInk); }
 /* the accent word: violet lettering with a brush swoosh drawn under it */
 .pill.word {
   position: relative;
@@ -377,10 +398,15 @@
   border: 0;
   border-radius: 0;
   background: none;
-  color: var(--brand);
+  color: var(--cr-violet);
   scale: 1;
   rotate: -2deg;
   margin-left: 0;
+  .cw { filter: url(#crayonSoft); }
+  .c1 { color: var(--cr-violet); }
+  .c2 { color: var(--cr-blue); }
+  .c3 { color: var(--cr-violet); }
+  .c4 { color: var(--cr-blue); }
   .swoosh {
     position: absolute;
     left: 0;
@@ -389,20 +415,24 @@
     width: 100%;
     height: 0.2em;
     overflow: visible;
-    path { fill: none; stroke: var(--brand); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; vector-effect: non-scaling-stroke; transition: stroke-dashoffset 0.2s ease; }
+    filter: url(#crayon);
+    path { fill: none; stroke-width: 5; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; vector-effect: non-scaling-stroke; transition: stroke-dashoffset 0.2s ease; }
+    .s1 { stroke: var(--cr-violet); }
+    .s2 { stroke: var(--cr-blue); }
+    .s3 { stroke: var(--cr-violet); stroke-width: 4; }
   }
 }
 .details-in .pill.word .swoosh path { stroke-dashoffset: 0; transition: stroke-dashoffset 0.9s var(--out) 1.5s; }
+.details-in .pill.word .swoosh .s2 { transition-delay: 1.7s; }
+.details-in .pill.word .swoosh .s3 { transition-delay: 1.9s; }
 
 /* the small clean sentence under the headline */
 .cta { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; }
-.or { font-size: 1.5rem; color: var(--grey); rotate: -4deg; }
+.or { font-size: 1.5rem; color: var(--cr-violet); rotate: -4deg; filter: url(#crayonSoft); }
 @media (max-width: 480px) { .or { display: none; } }
 
 .btn-pill, .btn-ghost {
-  font: 650 13px/1 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-  letter-spacing: 0.075em;
-  text-transform: uppercase;
+  @include c.hand-button(1.35rem);
   cursor: pointer;
   transition: transform 0.25s var(--spring), opacity 0.2s, box-shadow 0.25s;
   &:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
@@ -412,12 +442,13 @@
   display: inline-flex;
   align-items: center;
   gap: 0.7rem;
-  padding: 1rem 1.7rem;
+  padding: 0.8rem 1.6rem;
   border: 0;
   border-radius: 999px;
   background: var(--ink);
   color: var(--bg);
-  &:hover { transform: translateY(-2px); box-shadow: 0 10px 22px -10px color-mix(in srgb, var(--ink) 60%, transparent); }
+  @include c.crayon-edge(var(--cr-violet), var(--cr-blue));
+  &:hover { transform: translateY(-2px); }
   &:hover svg { transform: translateX(4px); }
   &:active { transform: translateY(0) scale(0.98); }
 }
@@ -435,8 +466,8 @@
     height: 36px;
     display: grid;
     place-items: center;
-    border: 1.5px solid var(--ink);
-    border-radius: 50%;
+    border: 2px solid color-mix(in srgb, var(--cr-violet) 65%, transparent);
+    border-radius: 52% 48% 50% 50% / 50% 52% 48% 50%;
     background: var(--pill-purple);
     transition: transform 0.35s var(--spring), background 0.2s;
   }
@@ -449,26 +480,49 @@
 
 /* ── YEARS: two nested sticker boxes, the shorter inside the longer (static, no loading animation) ── */
 .years {
+  position: relative;
   rotate: -1deg;
   transition: transform 0.35s var(--spring);
+  /* sticker shadow: a solid pink crayon block behind the card (on the wrapper, so it sits under the card's own background) */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 6px -6px -6px 6px;
+    z-index: -1;
+    border-radius: 24px;
+    background: var(--cr-violet);
+    opacity: 0.9;
+    filter: url(#crayon);
+    pointer-events: none;
+  }
   &:hover { transform: translateY(-3px); }
 
   .outer {
     padding: 1rem 1.2rem 1.2rem;
-    border: 1.5px solid var(--ink);
+    border: 0;
     border-radius: 24px;
-    background: var(--pill-blue);
-    box-shadow: 5px 5px 0 var(--ink);               /* flat sticker shadow, like the starburst */
+    background:
+      repeating-linear-gradient(-58deg, color-mix(in srgb, var(--cr-violet) 24%, transparent) 0 2.4px, transparent 2.4px 9px),
+      repeating-linear-gradient(32deg, color-mix(in srgb, var(--cr-blue) 20%, transparent) 0 2.2px, transparent 2.2px 11px),
+      linear-gradient(var(--pill-blue), var(--pill-blue)),
+      var(--bg);
+    isolation: isolate;
+    @include c.crayon-edge(var(--cr-violet), var(--cr-blue), 4px, 3px, 2px);
   }
   .inner {
     width: max(62.5%, 13.5rem);                      /* 2.5 of 4 years: the inner box is 62.5% of the outer one */
     margin-top: 0.85rem;
     padding: 0.75rem 1rem;
-    border: 1.5px solid var(--ink);
+    border: 0;
     border-radius: 16px;
-    background: var(--pill-purple);
+    background:
+      repeating-linear-gradient(-48deg, color-mix(in srgb, var(--cr-violet) 30%, transparent) 0 2.4px, transparent 2.4px 8px),
+      linear-gradient(var(--pill-purple), var(--pill-purple)),
+      var(--bg);
     rotate: 1.2deg;
     transform-origin: left center;
+    isolation: isolate;
+    @include c.crayon-edge(var(--cr-violet), var(--cr-blue), 3.5px, 3px, 2px);
   }
 
   .head { display: flex; align-items: baseline; gap: 0.7rem; flex-wrap: wrap; }
@@ -494,6 +548,9 @@
     color: color-mix(in srgb, var(--ink) 78%, transparent);
   }
 }
+
+/* crayon lettering for the numbers and their pencil labels */
+.years b, .years .head span { filter: url(#crayonInk); }
 
 /* ── PHOTO: interpolates from a centered card to the right half ── */
 .hero-right {
@@ -631,7 +688,7 @@
   .label { display: none; }                 /* the headline already says it; saves a line */
   .hero-content { gap: 0.7rem; }
   .btn-pill, .btn-ghost { white-space: nowrap; }
-  .btn-pill { padding: 0.85rem 1.2rem; font-size: 12.5px; }
+  .btn-pill { padding: 0.75rem 1.2rem; font-size: 1.25rem; }
   .cta { gap: 1.1rem; }
 }
 
@@ -660,9 +717,12 @@
   .years { .head { gap: 0.5rem; } b { font-size: 2.5rem; } .inner b { font-size: 2.2rem; } .head span { font-size: 1.3rem; } .inner { width: auto; } }
 }
 /* short portrait phones: the lettered card has to be compact to stay on screen */
-@media (max-width: 768px) and (max-height: 720px) {
+@media (max-width: 768px) and (max-height: 800px) {
   .years { .outer { padding: 0.55rem 0.8rem 0.7rem; } .inner { margin-top: 0.4rem; padding: 0.35rem 0.7rem; } b { font-size: 1.9rem; } .inner b { font-size: 1.7rem; } .head span { font-size: 1.1rem; } }
   .hero-content { gap: 0.5rem; }
+  /* the hand-lettered name tag and headline are taller than the old sans: tighten them on short phones */
+  .pill.name { font-size: 1.2em; padding-bottom: 0.08em; }
+  .row.big { font-size: clamp(34px, 10.2vw, 42px); }
 }
 /* short landscape screens */
 @media (max-height: 560px) and (min-width: 769px) {

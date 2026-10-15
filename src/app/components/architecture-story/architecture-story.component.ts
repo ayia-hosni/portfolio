@@ -185,11 +185,13 @@ export class ArchitectureStoryComponent implements AfterViewInit, OnDestroy {
   private async renderDiagram(d: ArchitectureDiagram): Promise<string> {
     const mermaid = (await loadMermaid()).default;
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    // same palette as the rest of the site: soft blue / purple fills, graphite lines, Inter text
+    // same palette as the rest of the site: soft blue / purple fills, graphite lines, hand-drawn text
     const v = isDark
       ? { primary: '#2f4a6b', secondary: '#4b3b7c', tertiary: '#1b1b22', text: '#ededed', border: '#d6d6dc', line: '#a8a8b3', cluster: '#17171c', note: '#2c2640' }
       : { primary: '#cfe6ff', secondary: '#e1d6ff', tertiary: '#f4f6ff', text: '#222222', border: '#2a2a33', line: '#5a5a66', cluster: '#fafaff', note: '#efe8ff' };
-    const font = '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif';
+    const font = '"Hand UI", "Playpen Sans Arabic", "Segoe Print", "Bradley Hand", cursive';
+    // mermaid measures text to size its boxes: the hand font has to be loaded first or the boxes are sized for a fallback
+    try { await document.fonts.load('16px "Hand UI"'); } catch { /* render with whatever is available */ }
     mermaid.initialize({
       startOnLoad: false,
       theme: 'base',

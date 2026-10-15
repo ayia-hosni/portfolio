@@ -1,5 +1,4 @@
-import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, ElementRef, inject, signal } from '@angular/core';
 import { RevealDirective } from '../../directives/reveal.directive';
 import { AnalyticsService } from '../../core/analytics.service';
 import { ArchitectureStoryComponent } from '../architecture-story/architecture-story.component';
@@ -8,56 +7,70 @@ import { ArchitectureDiagram, HEALTHCARE_PLATFORM_DIAGRAMS } from './architectur
 interface Project {
   num: string;
   title: string;
+  /** a short handwritten line under the title */
+  kicker: string;
   desc: string;
   stack: string[];
-  logo: string;
+  /** the decision / idea, written as a sticky note */
+  noteTitle: string;
+  note: string;
+  /** a real screenshot taped to the page (otherwise the architecture sketch is used, if there is one) */
+  shot?: string;
+  shotAlt?: string;
+  shotCaption?: string;
   links?: { label: string; url: string }[];
   architectureDiagrams?: ArchitectureDiagram[];
   highlights?: { value: string; label: string }[];
 }
 
+/**
+ * Projects as pages of a sketchbook: handwritten title, the idea in a margin note, a taped screenshot (or a napkin sketch of
+ * the architecture) and one sticky note with the decision behind it. The full architecture diagrams open inline.
+ */
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [CommonModule, RevealDirective, ArchitectureStoryComponent],
+  imports: [RevealDirective, ArchitectureStoryComponent],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.scss',
 })
-export class ProjectsComponent implements AfterViewInit, OnDestroy {
+export class ProjectsComponent {
   private host = inject(ElementRef<HTMLElement>);
-  private zone = inject(NgZone);
   private analytics = inject(AnalyticsService);
 
-  /** -1 = the card's intro; 0..n-1 = which diagram slide is showing */
-  step = signal(-1);
-  /** the architecture slides stay hidden until the visitor asks for them */
+  /** the architecture viewer is closed until asked for */
   archOpen = signal(false);
-  /** true shortly before the pinned card reaches the screen (start rendering diagrams) */
-  armed = signal(false);
-  private cleanup: Array<() => void> = [];
-  private static readonly TOP = 80;   // sticky offset, below the navbar
+  /** which diagram is showing */
+  archStep = signal(0);
 
   projects: Project[] = [
     {
       num: '01',
       title: 'Healthcare Microservices Platform',
+      kicker: 'a reference architecture',
       desc: 'Cloud-native reference architecture: nine independently deployable Spring Boot services combining REST/GraphQL at the edge, gRPC for internal synchronous calls, Kafka for event-driven workflows, and RabbitMQ for reliable notification retry/DLQ processing. Database-per-service on PostgreSQL, deployed to Kubernetes with Prometheus/Grafana observability.',
       stack: ['Spring Boot', 'Kafka', 'gRPC', 'GraphQL', 'RabbitMQ', 'Kubernetes'],
-      logo: 'healthcare_platform_logo.svg',
+      noteTitle: 'the call',
+      note: 'Kafka carries the events, through a transactional outbox. RabbitMQ is scoped to one service, for notification retries and dead letters. One database per service.',
       architectureDiagrams: HEALTHCARE_PLATFORM_DIAGRAMS,
       highlights: [
         { value: '9', label: 'independent services' },
-        { value: '3', label: 'API styles: REST · GraphQL · gRPC' },
-        { value: '2', label: 'brokers: Kafka · RabbitMQ' },
+        { value: '3', label: 'API styles: REST, GraphQL, gRPC' },
+        { value: '2', label: 'brokers: Kafka, RabbitMQ' },
         { value: '1:1', label: 'database per service' },
       ],
     },
     {
       num: '02',
       title: 'Aya Lab',
+      kicker: 'learn by doing',
       desc: 'CS-education tooling: a full-stack LeetCode-style coding-practice app on a Spring Boot / Angular architecture, plus an interactive linked-list learning game that makes pointer mechanics tangible.',
       stack: ['Spring Boot', 'Angular', 'TypeScript', 'Docker'],
-      logo: 'aya_lab.png',
+      noteTitle: 'the idea',
+      note: 'Make pointers tangible: a linked-list game next to a LeetCode-style practice app.',
+      shot: 'projects/ayalab.jpg',
+      shotAlt: 'Aya Lab on a phone: progress ring showing 10 of 33 problems solved, with filters for difficulty and topic',
+      shotCaption: 'ayalab.co',
       links: [
         { label: 'Live site', url: 'https://ayalab.co/' },
         { label: 'GitHub (backend)', url: 'https://github.com/ayia-hosni/ayalab-backend' },
@@ -66,9 +79,14 @@ export class ProjectsComponent implements AfterViewInit, OnDestroy {
     {
       num: '03',
       title: 'StudySync',
+      kicker: 'study together',
       desc: 'A study platform for students: live study sessions over plugNmeet video meetings, community posts, a habit tracker to build a daily study routine, and student challenges to keep everyone motivated. Live now and built in the open under the StudySync-Platform GitHub organization.',
       stack: ['plugNmeet', 'Posts', 'Habit tracker', 'Student challenges'],
-      logo: 'aya_lab.png',
+      noteTitle: 'the idea',
+      note: 'Study together online: live sessions, posts, habits and challenges in one place.',
+      shot: 'projects/studysync.jpg',
+      shotAlt: 'StudySync on a phone: a welcome card, weekly habit progress at 75 percent and a daily writing club habit',
+      shotCaption: 'study.ayalab.co',
       links: [
         { label: 'Live site', url: 'https://study.ayalab.co/' },
         { label: 'GitHub', url: 'https://github.com/StudySync-Platform' },
@@ -76,76 +94,22 @@ export class ProjectsComponent implements AfterViewInit, OnDestroy {
     },
   ];
 
-  ngAfterViewInit() {
-    const pin = this.host.nativeElement.querySelector('.pin') as HTMLElement | null;
-    const stick = pin?.querySelector('.pin-stick') as HTMLElement | null;
-    if (!pin || !stick) return;
-    const total = (this.storyProject?.architectureDiagrams?.length ?? 0) + 1;   // intro + one slide per diagram
-
-    this.zone.runOutsideAngular(() => {
-      let last = -2;
-      const onScroll = () => {
-        const rect = pin.getBoundingClientRect();
-        if (!this.archOpen()) {
-          if (last !== -1) { last = -1; this.zone.run(() => this.step.set(-1)); }
-          return;
-        }
-        if (!this.armed() && rect.top < window.innerHeight * 1.6 && rect.bottom > 0) this.zone.run(() => this.armed.set(true));
-        const track = pin.offsetHeight - stick.offsetHeight;
-        const progress = track > 0 ? Math.min(1, Math.max(0, (ProjectsComponent.TOP - rect.top) / track)) : 0;
-        const slot = Math.min(total - 1, Math.floor(progress * total));
-        const step = slot - 1;
-        if (step !== last) { last = step; this.zone.run(() => this.step.set(step)); }
-        // how far into the diagrams the visitor got (once per session each)
-        if (this.archOpen() && step >= 2) this.analytics.trackOnce('architecture-depth', { slide: 3 });
-        if (this.archOpen() && step >= total - 2) this.analytics.trackOnce('architecture-depth', { slide: total - 1 });
-      };
-      window.addEventListener('scroll', onScroll, { passive: true });
-      window.addEventListener('resize', onScroll);
-      this.cleanup.push(() => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); });
-      onScroll();
-    });
-  }
-
-  ngOnDestroy() {
-    this.cleanup.forEach((fn) => fn());
-  }
-
-  openArchitecture() {
+  openArchitecture(article: HTMLElement) {
+    this.archStep.set(0);
     this.archOpen.set(true);
-    // let the slides render and the pinned track grow, then glide to the first diagram
-    setTimeout(() => {
-      window.dispatchEvent(new Event('scroll'));
-      this.jumpTo(0);
-    }, 50);
+    // once the panel is rendered, bring it into view
+    setTimeout(() => article.querySelector('.arch-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
   }
 
-  hideArchitecture() {
-    const pin = this.host.nativeElement.querySelector('.pin') as HTMLElement | null;
+  hideArchitecture(article: HTMLElement) {
     this.archOpen.set(false);
-    this.armed.set(false);
-    this.step.set(-1);
-    // the track just collapsed: put the card back in view (instant, a smooth scroll would be cut short)
-    setTimeout(() => pin?.scrollIntoView({ block: 'center', behavior: 'instant' }), 50);
+    setTimeout(() => article.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
   }
 
-  /** the project whose architecture is told inside its card */
-  get storyProject(): Project | undefined {
-    return this.projects.find((p) => p.architectureDiagrams?.length);
-  }
-
-  /** scroll the pinned card to a slide (0..n-1) */
-  jumpTo(slide: number) {
-    const pin = this.host.nativeElement.querySelector('.pin') as HTMLElement | null;
-    const stick = pin?.querySelector('.pin-stick') as HTMLElement | null;
-    if (!pin || !stick) return;
-    const total = (this.storyProject?.architectureDiagrams?.length ?? 0) + 1;
-    if (window.matchMedia('(max-height: 520px), (prefers-reduced-motion: reduce)').matches) {
-      pin.scrollIntoView({ behavior: 'smooth' });
-      return;
-    }
-    const track = pin.offsetHeight - stick.offsetHeight;
-    const start = window.scrollY + pin.getBoundingClientRect().top - ProjectsComponent.TOP;
-    window.scrollTo({ top: start + (track / total) * (slide + 1) + 10, behavior: 'smooth' });
+  setStep(i: number, total: number) {
+    this.archStep.set(i);
+    // how far into the diagrams the visitor got (once per session each)
+    if (i >= 2) this.analytics.trackOnce('architecture-depth', { slide: 3 });
+    if (i >= total - 1) this.analytics.trackOnce('architecture-depth', { slide: total });
   }
 }

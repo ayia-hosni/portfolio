@@ -1,25 +1,25 @@
-<!-- company switcher: two slides side by side; only the active company's content is in the page -->
-<div class="switch" id="experience" role="tablist" aria-label="Choose a company">
-  <i class="pill-bg" [style.--i]="company() === 'bh' ? 0 : company() === 'brmja' ? 1 : 2" aria-hidden="true"></i>
-  <button type="button" role="tab" class="tab" [class.on]="company() === 'bh'" [attr.aria-selected]="company() === 'bh'" data-umami-event="company-brain-health" (click)="pick('bh')">
-    <img src="brain_health_usa_logo.jpeg" alt="" width="28" height="28" />
-    <span>Brain Health USA <small>(via Idaam Cloud)</small></span>
-  </button>
-  <button type="button" role="tab" class="tab" [class.on]="company() === 'brmja'" [attr.aria-selected]="company() === 'brmja'" data-umami-event="company-ofoq" (click)="pick('brmja')">
-    <img src="ofoq.png" alt="" width="28" height="28" />
-    <span>OFOQ <small>(BRMJA.TECH)</small></span>
-  </button>
-  <button type="button" role="tab" class="tab" [class.on]="company() === 'keel'" [attr.aria-selected]="company() === 'keel'" data-umami-event="company-keelworks" (click)="pick('keel')">
-    <img src="keelworks.jpeg" alt="" width="28" height="28" />
-    <span>KeelWorks</span>
-  </button>
+<!-- career overview: every company at a glance; picking one opens its details below -->
+<div class="overview" id="experience" role="group" aria-label="Choose a company">
+  @for (c of companies; track c.id) {
+    <button type="button" class="co-card" [class.on]="company() === c.id" [attr.aria-pressed]="company() === c.id" [attr.data-umami-event]="c.event" (click)="pick(c.id)">
+      <img class="cc-logo" [src]="c.logo" alt="" width="52" height="52" />
+      <span class="cc-txt">
+        <span class="cc-name">{{ c.name }}</span>
+        @if (c.note) { <span class="cc-note">{{ c.note }}</span> }
+        <span class="cc-role">{{ c.role }}</span>
+        @if (c.period) { <span class="cc-period">{{ c.period }}</span> }
+        <span class="cc-blurb">{{ c.blurb }}</span>
+      </span>
+      <svg class="cc-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+    </button>
+  }
 </div>
 
 <section class="intro" #intro [class.off]="company() !== 'bh'">
   <span class="company-logo reveal" appReveal>
     <img src="brain_health_usa_logo.jpeg" alt="Brain Health USA logo" width="100" height="100" />
   </span>
-  <p class="label reveal" appReveal>[ Experience ]</p>
+  <p class="label reveal" appReveal>experience</p>
   <h2 class="title" appReveal aria-label="Brain Health USA">
     <span class="line" aria-hidden="true">
       @for (w of words('Brain Health USA'); track $index; let wi = $index) {
@@ -133,7 +133,7 @@
   <span class="company-logo brmja reveal" appReveal>
     <img src="ofoq.png" alt="OFOQ logo" width="100" height="100" loading="lazy" />
   </span>
-  <p class="label reveal delay-1" appReveal>[ Experience ]</p>
+  <p class="label reveal delay-1" appReveal>experience</p>
   <h2 id="brmja-title" class="exp2-title reveal delay-1" appReveal>
     <span class="hl2">OFOQ</span>
   </h2>
@@ -165,7 +165,7 @@
   <span class="company-logo keel reveal" appReveal>
     <img src="keelworks.jpeg" alt="KeelWorks logo" width="100" height="100" loading="lazy" />
   </span>
-  <p class="label reveal delay-1" appReveal>[ Experience ]</p>
+  <p class="label reveal delay-1" appReveal>experience</p>
   <h2 id="keel-title" class="exp2-title reveal delay-1" appReveal>
     <span class="hl2">KeelWorks</span>
   </h2>

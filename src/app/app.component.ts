@@ -32,6 +32,27 @@ import { AnalyticsService } from './core/analytics.service';
           <feFuncA type="discrete" tableValues="0 .55 .8 .9 1" />
         </feComponentTransfer>
       </filter>
+      <filter id="crayon" x="-4%" y="-40%" width="108%" height="180%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="5" result="warp" />
+        <feDisplacementMap in="SourceGraphic" in2="warp" scale="5" xChannelSelector="R" yChannelSelector="G" result="wavy" />
+        <feTurbulence type="fractalNoise" baseFrequency="0.75 0.95" numOctaves="3" seed="2" result="grain" />
+        <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  3.4 0 0 0 -1.05" result="wax" />
+        <feComposite in="wavy" in2="wax" operator="in" />
+      </filter>
+      <filter id="crayonSoft" x="-4%" y="-20%" width="108%" height="140%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="9" result="warp" />
+        <feDisplacementMap in="SourceGraphic" in2="warp" scale="3" xChannelSelector="R" yChannelSelector="G" result="wavy" />
+        <feTurbulence type="fractalNoise" baseFrequency="0.8 1" numOctaves="3" seed="4" result="grain" />
+        <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  2.6 0 0 0 -0.55" result="wax" />
+        <feComposite in="wavy" in2="wax" operator="in" />
+      </filter>
+      <filter id="crayonInk" x="-4%" y="-20%" width="108%" height="140%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="11" result="warp" />
+        <feDisplacementMap in="SourceGraphic" in2="warp" scale="2.5" xChannelSelector="R" yChannelSelector="G" result="wavy" />
+        <feTurbulence type="fractalNoise" baseFrequency="0.8 1" numOctaves="3" seed="6" result="grain" />
+        <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  3 0 0 0 -0.1" result="wax" />
+        <feComposite in="wavy" in2="wax" operator="in" />
+      </filter>
       <filter id="wobble" x="-100%" y="0" width="300%" height="100%">
         <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="2" seed="3" result="n" />
         <feDisplacementMap in="SourceGraphic" in2="n" scale="3.5" xChannelSelector="R" yChannelSelector="G" />

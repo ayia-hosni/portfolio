@@ -35,7 +35,7 @@ interface Stop {
     </nav>
   `,
   styles: [`
-    :host { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+    :host { font-family: var(--font-ui); }
 
     .snav {
       position: fixed;
@@ -92,9 +92,9 @@ interface Stop {
         border-radius: 999px;
         background: var(--bg);
         color: var(--ink);
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 650;
-        letter-spacing: -0.005em;
+        letter-spacing: 0;
         white-space: nowrap;
         opacity: 0;
         pointer-events: none;
@@ -108,11 +108,11 @@ interface Stop {
       flex-direction: column;
       align-items: center;
       gap: 2px;
-      font-family: 'SF Mono', 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
-      font-size: 10px;
+      font-family: var(--font-ui);
+      font-size: 12px;
       line-height: 1;
       color: var(--grey);
-      b { color: var(--ink); font-size: 12px; font-weight: 700; }
+      b { color: var(--ink); font-size: 14px; font-weight: 700; }
       i { width: 12px; height: 1.5px; background: color-mix(in srgb, var(--ink) 30%, transparent); }
     }
 

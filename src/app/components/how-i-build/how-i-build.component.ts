@@ -7,9 +7,10 @@ import {
   ViewChild,
   signal,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { RevealDirective } from '../../directives/reveal.directive';
 
-type Step = { num: string; title: string; text: string; tags: string[]; art: 'boundaries' | 'pipelines' | 'delivery' | 'observability' };
+type Step = { num: string; title: string; text: string; tags: string[]; art: 'boundaries' | 'pipelines' | 'delivery' | 'observability'; noteTitle: string; note: string };
 
 /**
  * Intro statement + a pinned "how I build" scroll story: scrolling through the tall section
@@ -18,7 +19,7 @@ type Step = { num: string; title: string; text: string; tags: string[]; art: 'bo
 @Component({
   selector: 'app-how-i-build',
   standalone: true,
-  imports: [RevealDirective],
+  imports: [RevealDirective, NgTemplateOutlet],
   templateUrl: './how-i-build.component.html',
   styleUrl: './how-i-build.component.scss',
 })
@@ -32,6 +33,8 @@ export class HowIBuildComponent implements AfterViewInit, OnDestroy {
       text: 'Clean service boundaries decide whether a system survives real traffic. I design and run distributed services in Java / Spring Boot and PHP / Laravel, with clear ownership and contracts between them.',
       tags: ['Java', 'Spring Boot', 'PHP', 'Laravel'],
       art: 'boundaries',
+      noteTitle: 'the rule',
+      note: "Each service owns its data. Nothing reads another service's tables: it goes through an API, gRPC or an event.",
     },
     {
       num: '02',
@@ -39,6 +42,8 @@ export class HowIBuildComponent implements AfterViewInit, OnDestroy {
       text: 'Event-driven pipelines and idempotent jobs, coordinated through Kafka and Redis, so a retry never double-processes and state stays consistent under load.',
       tags: ['Kafka', 'Redis', 'Event-driven', 'Idempotent jobs'],
       art: 'pipelines',
+      noteTitle: 'the trick',
+      note: 'Events leave through a transactional outbox into Kafka, and jobs are idempotent, so a retry never double-processes.',
     },
     {
       num: '03',
@@ -46,6 +51,8 @@ export class HowIBuildComponent implements AfterViewInit, OnDestroy {
       text: 'Kubernetes on AWS EKS behind rigorous CI/CD, so every release is repeatable, automated and uneventful.',
       tags: ['Kubernetes', 'AWS EKS', 'CI/CD'],
       art: 'delivery',
+      noteTitle: 'the habit',
+      note: 'Every release goes through CI/CD into Kubernetes on AWS EKS. No manual steps.',
     },
     {
       num: '04',
@@ -53,6 +60,8 @@ export class HowIBuildComponent implements AfterViewInit, OnDestroy {
       text: 'Prometheus and Grafana dashboards, so problems show up on a screen before they show up in a ticket, and code the next engineer can reason about.',
       tags: ['Prometheus', 'Grafana', 'Clean code'],
       art: 'observability',
+      noteTitle: 'the goal',
+      note: 'An alert should fire before the ticket does: Prometheus metrics, Grafana dashboards.',
     },
   ];
 

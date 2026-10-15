@@ -143,15 +143,65 @@ export class ExperienceComponent implements AfterViewInit, OnDestroy {
     },
   ];
 
+  /** the career at a glance: one card per company, in the order shown (add `period: 'Jan 2024 – Mar 2025'` to a card to show dates) */
+  readonly companies: {
+    id: 'bh' | 'brmja' | 'keel';
+    name: string;
+    note: string;
+    role: string;
+    period: string;
+    blurb: string;
+    logo: string;
+    event: string;
+  }[] = [
+    {
+      id: 'bh',
+      name: 'Brain Health USA',
+      note: 'via Idaam Cloud',
+      role: 'Backend & DevOps Engineer',
+      period: '',
+      blurb: 'HIPAA-compliant US EMR and telehealth platform used by 450+ providers.',
+      logo: 'brain_health_usa_logo.jpeg',
+      event: 'company-brain-health',
+    },
+    {
+      id: 'brmja',
+      name: 'OFOQ',
+      note: 'formerly BRMJA.TECH',
+      role: 'Backend & DevOps Engineer',
+      period: '',
+      blurb: 'A doctor referral system for Canada, built in Python with MedGemma.',
+      logo: 'ofoq.png',
+      event: 'company-ofoq',
+    },
+    {
+      id: 'keel',
+      name: 'KeelWorks',
+      note: '',
+      role: 'Site Reliability Engineer',
+      period: '',
+      blurb: 'Learning to live. Living to learn.',
+      logo: 'keelworks.jpeg',
+      event: 'company-keelworks',
+    },
+  ];
+
   /** which company's experience is showing */
   company = signal<'bh' | 'brmja' | 'keel'>('bh');
 
   pick(c: 'bh' | 'brmja' | 'keel') {
     if (c === this.company()) return;
     this.company.set(c);
-    // the pinned story may have been scrolled deep: bring the switcher back into view so the new slide starts at its top
-    document.getElementById('experience')?.scrollIntoView({ block: 'start' });
-    window.scrollBy(0, -88);
+    // once the new details have rendered: on phones the cards fill the screen, so go to the details; elsewhere keep the cards in view above them
+    setTimeout(() => {
+      const narrow = window.matchMedia('(max-width: 760px)').matches;
+      const target = narrow
+        ? document.querySelector('app-experience .intro:not(.off), app-experience .exp2:not(.off)')
+        : document.getElementById('experience');
+      if (!target) return;
+      // one computed scroll: scrollIntoView followed by scrollBy fight each other under smooth scrolling
+      window.scrollTo({ top: window.scrollY + target.getBoundingClientRect().top - 88, behavior: 'smooth' });
+    });
   }
 
   active = signal(0);

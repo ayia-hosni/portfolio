@@ -1,0 +1,26 @@
+/* Shared crayon look.
+   - crayon-edge: two fat wax strokes in violet and blue drawn just outside the box (the box keeps its size); the #crayon
+     SVG filter (defined once in AppComponent) gives them a wavy edge and paper grain.
+   - hand-button: the lettering every button uses: bold hand-drawn display font, sentence case. */
+@mixin crayon-edge($c1: var(--cr-violet), $c2: var(--cr-blue), $w1: 3.5px, $w2: 3px, $out: 2px) {
+  position: relative;
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    border-radius: inherit;
+    pointer-events: none;
+    filter: url(#crayon);
+  }
+  &::after  { inset: -#{$out}; border: $w1 solid $c1; rotate: -0.25deg; }
+  &::before { inset: -#{$out + 1px} -#{$out + 2px} -#{$out + 2px} -#{$out + 1px}; border: $w2 solid $c2; rotate: 0.3deg; opacity: 0.9; }
+}
+
+@mixin hand-button($size: 1.2rem) {
+  font-family: var(--font-display);
+  font-size: $size;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  line-height: 1;
+}

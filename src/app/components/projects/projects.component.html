@@ -1,97 +1,77 @@
 <section class="ds" id="work">
   <div class="proj-head">
-    <div>
-      <p class="label reveal" appReveal>[ Selected work ]</p>
-      <h2 class="title reveal delay-1" appReveal>
-        Projects
-        <svg class="under" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M4 8 C40 2 70 13 110 7 S190 2 230 8 S280 12 296 5" /></svg>
-      </h2>
-    </div>
-
-    <div class="aside reveal delay-2" appReveal>
-      <div class="count"><b>{{ '0' + projects.length }}</b><span>projects</span></div>
-      <p class="note" aria-hidden="true">
-        real systems, real traffic
-      </p>
-    </div>
+    <p class="label reveal" appReveal>selected work</p>
+    <h2 class="title reveal delay-1" appReveal>
+      Projects
+      <svg class="under" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M4 8 C40 2 70 13 110 7 S190 2 230 8 S280 12 296 5" /></svg>
+    </h2>
   </div>
 
   <div class="projects">
     @for (p of projects; track p.num; let i = $index) {
-      @if (p.architectureDiagrams?.length) {
-        <!-- tall track: the card pins to the screen and its content turns into the diagram slides as you scroll -->
-        <div class="pin" #pin [class.closed]="!archOpen()" [style.--steps]="p.architectureDiagrams!.length + 1">
-          <div class="pin-stick" #stick>
-            <ng-container *ngTemplateOutlet="cardTpl; context: { $implicit: p, i: i, story: true }" />
+      <article class="page reveal" #page appReveal [class.flip]="i % 2 === 1" [style.--tilt]="(i % 2 === 0 ? -0.5 : 0.45) + 'deg'">
+        <span class="tape" aria-hidden="true"></span>
+
+        <header class="pg-head">
+          <span class="pg-num" aria-hidden="true">{{ p.num }}</span>
+          <div>
+            <h3>{{ p.title }}</h3>
+            <p class="kicker">{{ p.kicker }}</p>
           </div>
-        </div>
-      } @else {
-        <ng-container *ngTemplateOutlet="cardTpl; context: { $implicit: p, i: i, story: false }" />
-      }
-    }
-  </div>
-</section>
+        </header>
 
-<ng-template #cardTpl let-p let-i="i" let-story="story">
-      <article class="card" appReveal [class]="'card reveal delay-' + (i + 1) + (story ? ' story-card' : '')" [attr.data-tone]="i % 3">
-    <div class="panel">
-      <span class="num">{{ p.num }}</span>
-      <span class="logo-tile">
-        <img class="logo" [src]="p.logo" [alt]="p.title + ' logo'" />
-      </span>
-      <i class="diamond" aria-hidden="true"></i>
-    </div>
+        <div class="pg-cols">
+          <div class="pg-text">
+            <p class="desc">{{ p.desc }}</p>
 
-    <div class="body" [class.layers]="story">
-      <div class="intro-layer" [class.has-sketch]="p.architectureDiagrams?.length" [class.out]="story && step() >= 0">
-      <div class="copy">
-      <h3>{{ p.title }}</h3>
-      <p>{{ p.desc }}</p>
-
-      @if (p.highlights?.length) {
-        <ul class="facts">
-          @for (h of p.highlights; track h.label) {
-            <li><b>{{ h.value }}</b><span>{{ h.label }}</span></li>
-          }
-        </ul>
-      }
-
-      @if (p.stack.length) {
-        <ul class="chips">
-          @for (tag of p.stack; track tag) {
-            <li>{{ tag }}</li>
-          }
-        </ul>
-      }
-
-      @if (p.links?.length) {
-        <div class="links">
-          @for (l of p.links; track l.url) {
-            <a class="btn-pill" [href]="l.url" target="_blank" rel="noopener noreferrer" [attr.data-umami-event]="'project-link'" [attr.data-umami-event-project]="p.title" [attr.data-umami-event-link]="l.label">
-              {{ l.label }}
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
-            </a>
-          }
-        </div>
-      }
-
-      @if (p.architectureDiagrams?.length) {
-        <button type="button" class="arch-btn" [class.open]="archOpen()" [attr.aria-expanded]="archOpen()" [attr.data-umami-event]="archOpen() ? 'architecture-hide' : 'architecture-view'" (click)="archOpen() ? hideArchitecture() : openArchitecture()">
-          <span class="ico" aria-hidden="true">
-            @if (archOpen()) {
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>
-            } @else {
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+            @if (p.highlights?.length) {
+              <ul class="facts">
+                @for (h of p.highlights; track h.label) {
+                  <li><b>{{ h.value }}</b><span>{{ h.label }}</span></li>
+                }
+              </ul>
             }
-          </span>
-          <span class="txt">{{ archOpen() ? 'Hide architecture' : 'View architecture' }}</span>
-          @if (!archOpen()) { <em class="meta">{{ p.architectureDiagrams!.length }} diagrams</em> }
-        </button>
-      }
-      </div>
 
-      @if (p.architectureDiagrams?.length) {
-        <figure class="sketch" aria-hidden="true">
+            @if (p.stack.length) {
+              <p class="stack">
+                @for (t of p.stack; track t; let last = $last) {
+                  <span>{{ t }}</span>@if (!last) { <i aria-hidden="true">/</i> }
+                }
+              </p>
+            }
+
+            <div class="actions">
+              @for (l of p.links ?? []; track l.url) {
+                <a class="btn-pill" [href]="l.url" target="_blank" rel="noopener noreferrer" [attr.data-umami-event]="'project-link'" [attr.data-umami-event-project]="p.title" [attr.data-umami-event-link]="l.label">
+                  {{ l.label }}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+                </a>
+              }
+              @if (p.architectureDiagrams?.length) {
+                <button type="button" class="arch-btn" [class.open]="archOpen()" [attr.aria-expanded]="archOpen()" [attr.data-umami-event]="archOpen() ? 'architecture-hide' : 'architecture-view'" (click)="archOpen() ? hideArchitecture(page) : openArchitecture(page)">
+                  <span class="ico" aria-hidden="true">
+                    @if (archOpen()) {
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>
+                    } @else {
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+                    }
+                  </span>
+                  <span class="txt">{{ archOpen() ? 'Hide architecture' : 'View architecture' }}</span>
+                  @if (!archOpen()) { <em class="meta">{{ p.architectureDiagrams!.length }} diagrams</em> }
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="pg-visual">
+            @if (p.shot) {
+              <figure class="shot">
+                <img [src]="p.shot" [alt]="p.shotAlt" width="304" height="676" loading="lazy" />
+                <figcaption>{{ p.shotCaption }}</figcaption>
+              </figure>
+            } @else if (p.architectureDiagrams?.length) {
+              <p class="napkin-note" aria-hidden="true">napkin sketch</p>
+              <figure class="sketch" aria-hidden="true">
           <svg viewBox="0 0 400 214" fill="none">
             <circle class="ln fb" pathLength="1" cx="24" cy="100" r="12" />
             <text class="lbl fade" x="24" y="134">client</text>
@@ -124,16 +104,20 @@
             <path class="ln na" pathLength="1" d="M368 46 V58 M364 53 L368 59 L372 53" />
           </svg>
         </figure>
-      }
-      </div>
-
-      @if (story && archOpen()) {
-        <div class="story-layer" [class.in]="step() >= 0">
-          <button type="button" class="hide-arch" (click)="hideArchitecture()">Hide architecture</button>
-          <app-architecture-story [title]="p.title" [diagrams]="p.architectureDiagrams ?? []"
-                                  [active]="step()" [armed]="armed()" (jump)="jumpTo($event)" />
+            }
+            <p class="sticky"><b>{{ p.noteTitle }}</b>{{ p.note }}</p>
+          </div>
         </div>
-      }
-    </div>
-  </article>
-</ng-template>
+
+        @if (p.architectureDiagrams?.length && archOpen()) {
+          <div class="arch-wrap">
+            <button type="button" class="hide-arch" (click)="hideArchitecture(page)">hide</button>
+            <div class="arch-panel">
+              <app-architecture-story [title]="p.title" [diagrams]="p.architectureDiagrams ?? []" [active]="archStep()" [armed]="archOpen()" (jump)="setStep($event, p.architectureDiagrams!.length)" />
+            </div>
+          </div>
+        }
+      </article>
+    }
+  </div>
+</section>
