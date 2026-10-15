@@ -570,10 +570,12 @@
   /* the photo is cropped at the shoulders: dissolve the bottom and side edges into the page */
   -webkit-mask-image:
     linear-gradient(to bottom, #000 calc(58% + 16% * var(--e)), transparent calc(90% + 10% * var(--e))),
-    linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
+    linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 6%);
   mask-image:
     linear-gradient(to bottom, #000 calc(58% + 16% * var(--e)), transparent calc(90% + 10% * var(--e))),
-    linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
+    linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 6%);
   -webkit-mask-composite: source-in;
   mask-composite: intersect;
   /* the photo stays perfectly still: it only moves when the scroll glides it aside (via --e), never on its own or with the mouse */
@@ -622,7 +624,8 @@
     display: block;
   }
 
-  .img-bw { filter: grayscale(1); }
+  /* the pencil portrait (transparent paper, so it sits straight on the page) */
+  .img-bw { filter: none; }
 
   .img-color {
     filter: contrast(1.05) brightness(1.05);
@@ -741,3 +744,9 @@
   .draw path { transition: none; stroke-dashoffset: 0; }
   .hero-right { transition: none; transform: none; }
 }
+
+/* dark theme: a second version of the drawing, cut out along the outline of the head and shoulders, on toned lavender-grey paper
+   (no sheet behind it: the transparent paper would make the graphite vanish on the dark page, and inverting it makes the eyes glow) */
+.hero-right img.img-dark { display: none; }   /* needs more weight than the image's own display: block */
+:host-context([data-theme='dark']) .hero-right img.img-bw:not(.img-dark) { display: none; }
+:host-context([data-theme='dark']) .hero-right img.img-dark { display: block; }
