@@ -112,9 +112,8 @@
          (mousemove)="onMove($event, heroRight)"
          (mouseleave)="onLeave()">
       <div class="img-wrap">
-        <img class="img-bw" src="portrait-sketch.webp" alt="Aya Hosni, a pencil portrait" decoding="async" fetchpriority="high" />
-        <img class="img-bw img-dark" src="portrait-sketch-dark.webp" alt="Aya Hosni, a pencil portrait" decoding="async" loading="lazy" />
-        <img class="img-color" src="profile-cutout.webp" alt="" aria-hidden="true" decoding="async" fetchpriority="low" [class.active]="hovering()" />
+        <img class="img-bw" src="profile-cutout.webp" alt="Aya Hosni" decoding="async" fetchpriority="high" />
+        <img class="img-color" src="profile-cutout.webp" alt="" aria-hidden="true" decoding="async" [class.active]="hovering()" />
       </div>
     </div>
   </div>

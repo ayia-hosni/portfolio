@@ -624,8 +624,7 @@
     display: block;
   }
 
-  /* the pencil portrait (transparent paper, so it sits straight on the page) */
-  .img-bw { filter: none; }
+  .img-bw { filter: grayscale(1); }
 
   .img-color {
     filter: contrast(1.05) brightness(1.05);
@@ -744,9 +743,3 @@
   .draw path { transition: none; stroke-dashoffset: 0; }
   .hero-right { transition: none; transform: none; }
 }
-
-/* dark theme: a second version of the drawing, cut out along the outline of the head and shoulders, on toned lavender-grey paper
-   (no sheet behind it: the transparent paper would make the graphite vanish on the dark page, and inverting it makes the eyes glow) */
-.hero-right img.img-dark { display: none; }   /* needs more weight than the image's own display: block */
-:host-context([data-theme='dark']) .hero-right img.img-bw:not(.img-dark) { display: none; }
-:host-context([data-theme='dark']) .hero-right img.img-dark { display: block; }
