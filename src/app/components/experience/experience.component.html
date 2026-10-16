@@ -1,174 +1,164 @@
-<!-- career overview: every company at a glance; picking one opens its details below -->
-<div class="overview" id="experience" role="group" aria-label="Choose a company">
+<!-- career timeline: each company is one box; opening it unfolds its details inside the box -->
+<header class="xp-head" id="experience">
+  <p class="label">experience</p>
+  <h2>Where I've worked</h2>
+</header>
+<div class="overview" role="group" aria-label="Choose a company">
   @for (c of companies; track c.id) {
-    <button type="button" class="co-card" [class.on]="company() === c.id" [attr.aria-pressed]="company() === c.id" [attr.data-umami-event]="c.event" (click)="pick(c.id)">
-      <img class="cc-logo" [src]="c.logo" alt="" width="52" height="52" />
-      <span class="cc-txt">
-        <span class="cc-name">{{ c.name }}</span>
-        @if (c.note) { <span class="cc-note">{{ c.note }}</span> }
-        <span class="cc-role">{{ c.role }}</span>
-        @if (c.period) { <span class="cc-period">{{ c.period }}</span> }
-        <span class="cc-blurb">{{ c.blurb }}</span>
-      </span>
-      <svg class="cc-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
-    </button>
-  }
-</div>
-
-<section class="intro" #intro [class.off]="company() !== 'bh'">
-  <span class="company-logo reveal" appReveal>
-    <img src="brain_health_usa_logo.jpeg" alt="Brain Health USA logo" width="100" height="100" />
-  </span>
-  <p class="label reveal" appReveal>experience</p>
-  <h2 class="title" appReveal aria-label="Brain Health USA">
-    <span class="line" aria-hidden="true">
-      @for (w of words('Brain Health USA'); track $index; let wi = $index) {
-        <span class="tw">@for (ch of chars(w); track $index; let ci = $index) {<span class="tc" [style.--i]="wi * 4 + ci">{{ ch }}</span>}</span>{{ ' ' }}
-      }
-    </span>
-    <svg class="under" viewBox="0 0 300 14" aria-hidden="true"><path pathLength="1" d="M4 8 C40 2 70 13 110 7 S190 2 230 8 S280 12 296 5" /></svg>
-  </h2>
-  <p class="role reveal delay-3" appReveal>Backend &amp; DevOps Engineer</p>
-  <p class="via reveal delay-3" appReveal>
-    via
-    <img src="idaamcloud_logo.jpeg" alt="Idaam Cloud logo" width="26" height="26" />
-    <b>Idaam Cloud</b>
-  </p>
-  <p class="lead reveal delay-4" appReveal>
-    A HIPAA-compliant US EMR/EHR and telehealth product used by <strong><span class="mk">450+ providers</span></strong> across
-    <strong><span class="mk">50+ clinics</span></strong>, handling about <strong><span class="mk">1,500–2,000 appointments a day</span></strong>.
-    Here is how it came together, one chapter at a time.
-  </p>
-  <button class="begin reveal delay-5" appReveal type="button" [class.open]="storyOpen()" [attr.aria-expanded]="storyOpen()" [attr.data-umami-event]="storyOpen() ? 'story-hide' : 'story-start'" (click)="storyOpen() ? hideStory() : start()">
-    <span class="ico" aria-hidden="true">
-      @if (storyOpen()) {
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>
-      } @else {
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
-      }
-    </span>
-    <span class="txt">{{ storyOpen() ? 'Hide the story' : 'Start the story' }}</span>
-    @if (!storyOpen()) { <em class="meta">8 chapters</em> }
-  </button>
-</section>
-
-<section class="story" [class.off]="company() !== 'bh' || !storyOpen()" #story aria-label="Brain Health USA, the story">
-  <div class="stage">
-    <div class="topbar">
-      <span class="co">[ Brain Health USA ]</span>
-      <div class="segs" role="tablist" aria-label="Chapters">
-        @for (c of chapters; track c.title; let i = $index) {
-          <button type="button" role="tab" class="seg" [class.on]="staticMode() ? seen().has(i) : i <= active()" [class.cur]="i === cur()"
-                  [attr.aria-selected]="i === cur()" [attr.aria-label]="'Chapter ' + (i + 1) + ': ' + c.title" (click)="goTo(i)"></button>
-        }
-      </div>
-      <span class="count" aria-hidden="true">@for (n of [cur()]; track n) {<b class="roll">{{ pad(n + 1) }}</b>} / {{ pad(chapters.length) }}</span>
-      <button type="button" class="hide-story" (click)="hideStory()">Hide story</button>
-    </div>
-
-    <div class="grid">
-      <!-- text: every chapter shares one grid cell, so the tallest one sets the height and nothing jumps -->
-      <div class="texts">
-        @for (c of chapters; track c.title; let i = $index) {
-          <article class="chapter" [attr.data-i]="i" [class.active]="isOn(i)" [class.past]="!staticMode() && i < active()"
-                   [attr.aria-hidden]="!staticMode() && i !== active()" [attr.inert]="!staticMode() && i !== active() ? '' : null"
-                   [style.--hl]="i % 2 ? 'rgba(190, 160, 255, 0.55)' : 'rgba(150, 205, 255, 0.6)'">
-            <span class="bignum" aria-hidden="true">{{ pad(i + 1) }}</span>
-            <p class="kicker"><span class="k">{{ c.kicker }}</span></p>
-            <h3 class="ch-title">
-              <span class="chnum">{{ pad(i + 1) }}</span>
-              <span class="hl">
-                @for (w of words(c.title); track $index; let wi = $index) {
-                  <span class="wm"><span class="wi" [style.--i]="wi">{{ w }}</span></span>{{ ' ' }}
-                }
-              </span>
-            </h3>
-
-            @if (c.metrics) {
-              <div class="metrics">
-                @for (m of c.metrics; track m.label) {
-                  <div class="metric"><b [attr.data-final]="m.value">{{ m.value }}</b><span>{{ m.label }}</span></div>
-                }
-              </div>
+    <div class="tl-item" [attr.data-co]="c.id" [class.on]="isOpen(c.id)" [class.plain]="c.plain">
+      <i class="tl-node" aria-hidden="true"></i>
+      <div class="co-box">
+        <button type="button" class="co-card" [class.on]="isOpen(c.id)" [attr.aria-expanded]="c.plain ? null : isOpen(c.id)" [attr.aria-controls]="c.plain ? null : 'detail-' + c.id" [attr.data-umami-event]="c.event" (click)="toggle(c.id, true)">
+          <img class="cc-logo" [src]="c.logo" alt="" width="52" height="52" />
+          <span class="cc-txt">
+            <span class="cc-name">{{ c.name }}</span>
+            @if (c.note) { <span class="cc-note">@if (c.noteLogo) { <img class="cc-nlogo" [src]="c.noteLogo" alt="" width="30" height="30" loading="lazy" /> }{{ c.note }}</span> }
+            <span class="cc-role"><span class="stamp">{{ c.role }}</span></span>
+            @if (c.period) { <span class="cc-period">{{ c.period }}</span> }
+            <span class="cc-blurb">{{ c.blurb }}</span>
+            @if (!c.plain) {
+              <span class="cc-toggle">{{ isOpen(c.id) ? 'Hide details' : 'Show details' }}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg></span>
             }
+          </span>
+        </button>
 
-            <ul class="points">
-              @for (p of c.points; track p; let pi = $index) { <li [style.--n]="pi">{{ p }}</li> }
-            </ul>
+        @if (c.id === 'bh') {
+          <div class="co-detail" id="detail-bh" [class.open]="isOpen('bh')" [attr.inert]="isOpen('bh') ? null : ''">
+            <div class="cd-in">
+              <div class="deck" role="region" aria-roledescription="carousel" aria-label="Brain Health USA, eight slides" tabindex="0"
+                   (keydown)="onKey($event)" (pointerdown)="swipeStart($event)" (pointerup)="swipeEnd($event)">
+                <div class="dk-top">
+                  <span class="dk-count" aria-hidden="true"><b>{{ pad(slide() + 1) }}</b> / {{ pad(chapters.length) }}</span>
+                  <div class="dk-dots" role="group" aria-label="Choose a slide">
+                    @for (ch of chapters; track ch.title; let i = $index) {
+                      <button type="button" class="dot" [class.on]="i === slide()" [class.done]="i < slide()" [attr.aria-label]="'Slide ' + (i + 1) + ': ' + ch.title" [attr.aria-current]="i === slide() ? 'true' : null" (click)="go(i)"></button>
+                    }
+                  </div>
+                </div>
 
-            <ul class="chips">
-              @for (t of c.tags; track t; let ti = $index) { <li [style.--n]="ti">{{ t }}</li> }
-            </ul>
+                <div class="slides" aria-live="polite">
+                  @for (ch of chapters; track ch.title; let i = $index) {
+                    <article class="slide" [class.active]="i === slide()" [class.before]="i < slide()" role="group" aria-roledescription="slide"
+                             [attr.aria-label]="(i + 1) + ' of ' + chapters.length" [attr.aria-hidden]="i !== slide()" [attr.inert]="i !== slide() ? '' : null">
+                      <figure class="sl-art">
+                        <img [src]="ch.image" [alt]="ch.alt" loading="lazy" />
+                        <figcaption>{{ ch.caption }}</figcaption>
+                      </figure>
+                      <div class="sl-txt">
+                        <p class="kicker">{{ ch.kicker }}</p>
+                        <h3 class="sl-title">{{ ch.title }}</h3>
+                        @if (ch.metrics) {
+                          <div class="metrics">
+                            @for (m of ch.metrics; track m.label) {
+                              <div class="metric"><b>{{ m.value }}</b><span>{{ m.label }}</span></div>
+                            }
+                          </div>
+                        }
+                        <ul class="points">
+                          @for (p of ch.points; track p) { <li>{{ p }}</li> }
+                        </ul>
+                        <ul class="chips">
+                          @for (t of ch.tags; track t) { <li>{{ t }}</li> }
+                        </ul>
+                      </div>
+                    </article>
+                  }
+                </div>
 
-            <!-- phones and reduced motion: the illustration sits inside each chapter -->
-            <figure class="inline-art" [attr.data-n]="pad(i + 1)">
-              <img [src]="c.image" [alt]="c.alt" loading="lazy" />
-              <figcaption>{{ c.caption }}</figcaption>
-            </figure>
-          </article>
+                <div class="dk-nav">
+                  <button type="button" class="dk-btn" (click)="prev()" [disabled]="slide() === 0">&larr; Back</button>
+                  <button type="button" class="dk-btn primary" (click)="next()" [disabled]="slide() === chapters.length - 1">Next &rarr;</button>
+                </div>
+              </div>
+              <button type="button" class="hide-btn" (click)="toggle('bh', true)">Hide details
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (c.id === 'brmja') {
+          <div class="co-detail" id="detail-brmja" [class.open]="isOpen('brmja')" [attr.inert]="isOpen('brmja') ? null : ''">
+            <div class="cd-in">
+              <article class="main-proj">
+                <span class="tape" aria-hidden="true"></span>
+                <img class="mp-logo" src="projects/ofoq/clarity.jpg" alt="Clarity logo" width="150" height="51" loading="lazy" />
+                <p class="kicker exp2-kicker">The main project I worked on at OFOQ</p>
+                <h3 class="cd-h">Doctor referral system <span>for Canada</span></h3>
+                <p class="cd-lead">
+                  A platform where <strong>Canadian doctors refer patients</strong> to other doctors, with the <strong>MedGemma</strong> medical AI model
+                  built into the workflow. I took care of the <strong>backend and DevOps</strong>.
+                </p>
+                <ul class="chips exp2-chips">
+                  <li>Python</li><li>MedGemma</li><li>AI</li><li>Healthcare</li><li>Canada</li>
+                </ul>
+              </article>
+
+              <p class="cd-sub">Also shipped by OFOQ</p>
+              <ul class="cd-projs">
+                <li>
+                  <div class="ph"><img class="pl" src="projects/ofoq/mastershop.jpg" alt="" width="44" height="44" loading="lazy" /><b>Master Shop</b></div>
+                  <span>One app for groceries, restaurants, car wash and express courier.</span>
+                  <em>Flutter · Firebase Auth · Google Places · Node.js</em>
+                  <span class="links"><a class="store" href="https://apps.apple.com/eg/app/mster-shop-%D9%85%D8%B3%D8%AA%D8%B1-%D8%B4%D9%88%D8%A8/id6746172614" target="_blank" rel="noopener noreferrer" data-umami-event="ofoq-master-shop-appstore">App Store</a></span>
+                </li>
+                <li>
+                  <div class="ph"><img class="pl" src="projects/ofoq/takween.jpg" alt="" width="44" height="44" loading="lazy" /><b>Takween United Platform</b></div>
+                  <span>Books, audiobooks, live radio shows and podcasts in one app.</span>
+                  <em>iOS app</em>
+                  <span class="links">
+                    <a class="store" href="https://apps.apple.com/eg/app/takween-united-platform/id6792493433" target="_blank" rel="noopener noreferrer" data-umami-event="ofoq-takween-appstore">App Store</a>
+                    <a class="store" href="https://tkweeen.com/" target="_blank" rel="noopener noreferrer" data-umami-event="ofoq-takween-website">Website</a>
+                  </span>
+                </li>
+                <li>
+                  <div class="ph"><img class="pl" src="projects/ofoq/rawkemya.jpg" alt="" width="44" height="44" loading="lazy" /><b>RawKemya</b></div>
+                  <span>A B2B marketplace for industrial chemicals, with technical specs, live prices and supplier quotes.</span>
+                  <em>iOS app</em>
+                  <span class="links">
+                    <a class="store" href="https://apps.apple.com/eg/app/rawkemya-%D8%B1%D9%88%D9%83%D9%8A%D9%85%D9%8A%D8%A7/id6784292625" target="_blank" rel="noopener noreferrer" data-umami-event="ofoq-rawkemya-appstore">App Store</a>
+                    <a class="store" href="https://www.rawkemya.com/" target="_blank" rel="noopener noreferrer" data-umami-event="ofoq-rawkemya-website">Website</a>
+                  </span>
+                </li>
+              </ul>
+
+              <a class="fb" href="https://www.facebook.com/brmja.tech" target="_blank" rel="noopener noreferrer" data-umami-event="ofoq-facebook">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.69.24 2.69.24v2.97h-1.52c-1.49 0-1.96.93-1.96 1.88v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z"/></svg>
+                <span>Facebook page</span>
+              </a>
+              <button type="button" class="hide-btn" (click)="toggle('brmja', true)">Hide details
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (c.id === 'ipda3') {
+          <div class="co-detail" id="detail-ipda3" [class.open]="isOpen('ipda3')" [attr.inert]="isOpen('ipda3') ? null : ''">
+            <div class="cd-in">
+              <p class="kicker exp2-kicker">An internship, five months.</p>
+              <h3 class="cd-h">Blood bank <span>system</span></h3>
+              <figure class="shot">
+                <img src="projects/ipda3/blood_bank.webp" alt="The blood bank mobile app: login screen, splash screen and an articles feed, in Arabic" width="1100" height="629" loading="lazy" />
+              </figure>
+              <ul class="cd-list">
+                <li>Helped build the <strong>dashboard</strong> and designed its interface.</li>
+                <li>Optimized the <strong>API</strong> behind it.</li>
+                <li>Integrated <strong>Firebase Cloud</strong> to send notifications to the mobile app.</li>
+              </ul>
+              <ul class="chips exp2-chips">
+                <li>Firebase</li><li>REST API</li><li>Dashboard</li><li>Mobile notifications</li>
+              </ul>
+              <button type="button" class="hide-btn" (click)="toggle('ipda3', true)">Hide details
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>
+              </button>
+            </div>
+          </div>
         }
       </div>
-
-      <!-- illustrations: stacked, cross-fading -->
-      <div class="art-col">
-        <div class="art-card">
-          <span class="badge" aria-hidden="true">{{ pad(active() + 1) }}</span>
-          <i class="diamond" aria-hidden="true"></i>
-          @for (c of chapters; track c.title; let i = $index) {
-            <img class="art" [class.active]="isOn(i)" [class.past]="!staticMode() && i < active()" [src]="c.image" [alt]="c.alt" loading="lazy" />
-          }
-        </div>
-        <div class="caps" aria-live="polite">
-          @for (c of chapters; track c.title; let i = $index) {
-            <p class="cap" [class.on]="i === active()"><span class="k">{{ c.caption }}</span></p>
-          }
-        </div>
-      </div>
     </div>
-  </div>
-</section>
-
-<!-- BRMJA.TECH: a separate experience -->
-<section class="exp2" id="brmja" aria-labelledby="brmja-title" [class.off]="company() !== 'brmja'">
-  <span class="company-logo brmja reveal" appReveal>
-    <img src="ofoq.png" alt="OFOQ logo" width="100" height="100" loading="lazy" />
-  </span>
-  <p class="label reveal delay-1" appReveal>experience</p>
-  <h2 id="brmja-title" class="exp2-title reveal delay-1" appReveal>
-    <span class="hl2">OFOQ</span>
-  </h2>
-  <p class="aka reveal delay-1" appReveal>
-    <img src="brmja_tech.jpeg" alt="BRMJA.TECH logo" width="26" height="26" loading="lazy" />
-    formerly <b>BRMJA.TECH</b> · now OFOQ Software Development
+  }
+  <p class="more-note">
+    Happy to go deeper on any of these. <a href="#contact" data-umami-event="experience-more-details">Email me.</a>
   </p>
-  <a class="fb reveal delay-2" appReveal href="https://www.facebook.com/brmja.tech" target="_blank" rel="noopener noreferrer" data-umami-event="ofoq-facebook">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.69.24 2.69.24v2.97h-1.52c-1.49 0-1.96.93-1.96 1.88v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z"/></svg>
-    <span>Facebook page</span>
-  </a>
-  <p class="role reveal delay-2" appReveal>Backend &amp; DevOps Engineer</p>
-
-  <article class="exp2-card reveal delay-3" appReveal>
-    <p class="kicker exp2-kicker">Then, a new problem to solve.</p>
-    <h3>Doctor referral system <span>for Canada</span></h3>
-    <p class="exp2-text">
-      A referral system built for <strong>Canadian doctors</strong>, written in <strong>Python</strong>, with the
-      <strong>MedGemma</strong> medical AI model integrated into the workflow.
-    </p>
-    <ul class="chips exp2-chips">
-      <li>Python</li><li>MedGemma</li><li>AI</li><li>Healthcare</li><li>Canada</li>
-    </ul>
-  </article>
-</section>
-
-<!-- KeelWorks -->
-<section class="exp2" id="keel" aria-labelledby="keel-title" [class.off]="company() !== 'keel'">
-  <span class="company-logo keel reveal" appReveal>
-    <img src="keelworks.jpeg" alt="KeelWorks logo" width="100" height="100" loading="lazy" />
-  </span>
-  <p class="label reveal delay-1" appReveal>experience</p>
-  <h2 id="keel-title" class="exp2-title reveal delay-1" appReveal>
-    <span class="hl2">KeelWorks</span>
-  </h2>
-  <p class="role reveal delay-2" appReveal>Site Reliability Engineer</p>
-  <p class="aka reveal delay-2" appReveal>Learning to live. Living to learn.</p>
-</section>
+</div>

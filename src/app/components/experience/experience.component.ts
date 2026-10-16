@@ -1,5 +1,4 @@
-import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, ViewChild, signal } from '@angular/core';
-import { RevealDirective } from '../../directives/reveal.directive';
+import { Component, signal } from '@angular/core';
 import { AnalyticsService } from '../../core/analytics.service';
 
 interface Chapter {
@@ -14,19 +13,17 @@ interface Chapter {
 }
 
 /**
- * Brain Health USA, told as a story: a pinned scroll section where each of the eight chapters
- * pairs a hand-drawn illustration with what was built. Scrolling advances the chapter.
+ * Experience as a timeline of company boxes. Brain Health USA unfolds into eight slides: each pairs a hand-drawn
+ * illustration with what was built.
  */
 @Component({
   selector: 'app-experience',
   standalone: true,
-  imports: [RevealDirective],
+  imports: [],
   templateUrl: './experience.component.html',
   styleUrl: './experience.component.scss',
 })
-export class ExperienceComponent implements AfterViewInit, OnDestroy {
-  @ViewChild('story', { static: true }) story!: ElementRef<HTMLElement>;
-  @ViewChild('intro', { static: true }) intro!: ElementRef<HTMLElement>;
+export class ExperienceComponent {
 
   readonly chapters: Chapter[] = [
     {
@@ -145,9 +142,11 @@ export class ExperienceComponent implements AfterViewInit, OnDestroy {
 
   /** the career at a glance: one card per company, in the order shown (add `period: 'Jan 2024 – Mar 2025'` to a card to show dates) */
   readonly companies: {
-    id: 'bh' | 'brmja' | 'keel';
+    id: 'bh' | 'brmja' | 'keel' | 'ipda3';
+    plain?: boolean;   // nothing to unfold yet
     name: string;
     note: string;
+    noteLogo?: string;
     role: string;
     period: string;
     blurb: string;
@@ -158,6 +157,7 @@ export class ExperienceComponent implements AfterViewInit, OnDestroy {
       id: 'bh',
       name: 'Brain Health USA',
       note: 'via Idaam Cloud',
+      noteLogo: 'idaamcloud_logo.jpeg',
       role: 'Backend & DevOps Engineer',
       period: '',
       blurb: 'HIPAA-compliant US EMR and telehealth platform used by 450+ providers.',
@@ -168,6 +168,7 @@ export class ExperienceComponent implements AfterViewInit, OnDestroy {
       id: 'brmja',
       name: 'OFOQ',
       note: 'formerly BRMJA.TECH',
+      noteLogo: 'brmja_tech.jpeg',
       role: 'Backend & DevOps Engineer',
       period: '',
       blurb: 'A doctor referral system for Canada, built in Python with MedGemma.',
@@ -176,6 +177,7 @@ export class ExperienceComponent implements AfterViewInit, OnDestroy {
     },
     {
       id: 'keel',
+      plain: true,
       name: 'KeelWorks',
       note: '',
       role: 'Site Reliability Engineer',
@@ -184,193 +186,67 @@ export class ExperienceComponent implements AfterViewInit, OnDestroy {
       logo: 'keelworks.jpeg',
       event: 'company-keelworks',
     },
+    {
+      id: 'ipda3',
+      name: 'Ipda3 Tech',
+      note: '',
+      role: 'Backend Intern',
+      period: 'Oct 2023 – Feb 2024 · 5 months',
+      blurb: 'A blood bank system: dashboard, API and Firebase mobile notifications.',
+      logo: 'ipda3_tech.jpeg',
+      event: 'company-ipda3',
+    },
   ];
 
-  /** which company's experience is showing */
-  company = signal<'bh' | 'brmja' | 'keel'>('bh');
+  /** boxes that are unfolded: everything with details starts open, and each box has a Hide details button */
+  open = signal<Set<string>>(new Set(['bh', 'brmja', 'ipda3']));
 
-  pick(c: 'bh' | 'brmja' | 'keel') {
-    if (c === this.company()) return;
-    this.company.set(c);
-    // once the new details have rendered: on phones the cards fill the screen, so go to the details; elsewhere keep the cards in view above them
+  isOpen(id: string) { return this.open().has(id); }
+
+  /** the slide showing in the Brain Health USA box */
+  slide = signal(0);
+
+  constructor(private analytics: AnalyticsService) {}
+
+  toggle(id: string, scroll = false) {
+    const opening = !this.isOpen(id);
+    this.open.update((o) => { const n = new Set(o); opening ? n.add(id) : n.delete(id); return n; });
+    if (!scroll) return;
+    // after folding or unfolding, keep the box's top just under the navbar
     setTimeout(() => {
-      const narrow = window.matchMedia('(max-width: 760px)').matches;
-      const target = narrow
-        ? document.querySelector('app-experience .intro:not(.off), app-experience .exp2:not(.off)')
-        : document.getElementById('experience');
-      if (!target) return;
-      // one computed scroll: scrollIntoView followed by scrollBy fight each other under smooth scrolling
-      window.scrollTo({ top: window.scrollY + target.getBoundingClientRect().top - 88, behavior: 'smooth' });
-    });
+      const box = document.querySelector<HTMLElement>(`app-experience [data-co="${id}"]`);
+      if (box) window.scrollTo({ top: window.scrollY + box.getBoundingClientRect().top - 96, behavior: 'smooth' });
+    }, 60);
   }
 
-  active = signal(0);
-  staticMode = signal(false);
-  seen = signal<Set<number>>(new Set());
+  go(i: number) {
+    const n = this.chapters.length;
+    const to = Math.min(n - 1, Math.max(0, i));
+    if (to === this.slide()) return;
+    this.slide.set(to);
+    // how far into the slides the visitor got (once per session each)
+    this.analytics.trackOnce('story-start');
+    if (to >= 2) this.analytics.trackOnce('story-depth', { chapter: 3 });
+    if (to >= n - 1) this.analytics.trackOnce('story-depth', { chapter: n });
+  }
+  next() { this.go(this.slide() + 1); }
+  prev() { this.go(this.slide() - 1); }
 
-  /** the chapter shown in the counter: the pinned index, or (stacked) the furthest chapter reached */
-  cur() {
-    if (!this.staticMode()) return this.active();
-    const s = this.seen();
-    return s.size ? Math.max(...s) : 0;
+  onKey(e: KeyboardEvent) {
+    if (e.key === 'ArrowRight') { e.preventDefault(); this.next(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); this.prev(); }
   }
 
-  isOn(i: number) {
-    return this.staticMode() ? this.seen().has(i) : i === this.active();
-  }
-  private cleanup: Array<() => void> = [];
-  private countFrames = new Map<number, number>();
-  private static readonly STATIC_LAYOUT = '(max-height: 520px), (prefers-reduced-motion: reduce)';
-
-  constructor(private zone: NgZone, private analytics: AnalyticsService) {}
-
-  ngAfterViewInit() {
-    this.zone.runOutsideAngular(() => {
-      const section = this.story.nativeElement;
-      const total = this.chapters.length;
-      let last = -1;
-      const onScroll = () => {
-        const rect = section.getBoundingClientRect();
-        const track = section.offsetHeight - window.innerHeight;
-        const progress = track > 0 ? Math.min(1, Math.max(0, -rect.top / track)) : 0;
-        const step = Math.min(total - 1, Math.floor(progress * total));
-        if (step !== last) {
-          last = step;
-          this.zone.run(() => this.active.set(step));
-          this.countMetrics(step);
-          // how far into the story the visitor got (once per session each); only while the story is open
-          if (this.storyOpen() && step >= 2) this.analytics.trackOnce('story-depth', { chapter: 3 });
-          if (this.storyOpen() && step >= total - 1) this.analytics.trackOnce('story-depth', { chapter: total });
-        }
-      };
-      const mq = window.matchMedia(ExperienceComponent.STATIC_LAYOUT);
-      const syncMode = () => this.zone.run(() => this.staticMode.set(mq.matches));
-      syncMode();
-      mq.addEventListener('change', syncMode);
-      const io = new IntersectionObserver(
-        (entries) => {
-          entries.filter((e) => e.isIntersecting).forEach((e) => {
-            const i = +(e.target as HTMLElement).dataset['i']!;
-            if (!this.seen().has(i)) {
-              this.zone.run(() => this.seen.update((s) => new Set([...s, i])));
-              if (this.staticMode()) this.countMetrics(i);   // pinned layout counts from the scroll handler (every chapter overlaps there)
-            }
-          });
-        },
-        { threshold: 0.25, rootMargin: '0px 0px -8% 0px' }
-      );
-      section.querySelectorAll('.chapter').forEach((el) => io.observe(el));
-      this.cleanup.push(() => { mq.removeEventListener('change', syncMode); io.disconnect(); });
-
-      window.addEventListener('scroll', onScroll, { passive: true });
-      window.addEventListener('resize', onScroll);
-      this.cleanup.push(() => {
-        window.removeEventListener('scroll', onScroll);
-        window.removeEventListener('resize', onScroll);
-      });
-      onScroll();
-      this.initTilt();
-    });
-  }
-
-  /** the numbers in a chapter's metric cards count up from zero when the chapter becomes active */
-  private countMetrics(chapter: number) {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const els = Array.from(this.story.nativeElement.querySelectorAll<HTMLElement>(`.chapter[data-i="${chapter}"] .metric b`));
-    if (!els.length) return;
-    cancelAnimationFrame(this.countFrames.get(chapter) ?? 0);   // only this chapter's own count: other chapters must not cancel it
-    const start = performance.now() + 450;
-    const dur = 1100;
-    const fmt = (final: string, k: number) =>
-      final.replace(/\d+(\.\d+)?/g, (n) => {
-        const dec = n.includes('.') ? n.split('.')[1].length : 0;
-        return (parseFloat(n) * k).toFixed(dec);
-      });
-    els.forEach((el) => (el.textContent = fmt(el.dataset['final']!, 0)));
-    const tick = (now: number) => {
-      const t = Math.min(1, Math.max(0, (now - start) / dur));
-      const k = 1 - Math.pow(1 - t, 3);
-      els.forEach((el) => (el.textContent = fmt(el.dataset['final']!, k)));
-      if (t < 1) this.countFrames.set(chapter, requestAnimationFrame(tick));
-    };
-    this.countFrames.set(chapter, requestAnimationFrame(tick));
-  }
-
-  /** illustration card tilts toward the pointer; the artwork inside shifts a little the other way */
-  private initTilt() {
-    if (window.matchMedia(ExperienceComponent.STATIC_LAYOUT).matches) return;
-    const card = this.story.nativeElement.querySelector<HTMLElement>('.art-card');
-    if (!card) return;
-    let raf = 0;
-    let target = { x: 0, y: 0 };
-    let cur = { x: 0, y: 0 };
-    const step = () => {
-      cur.x += (target.x - cur.x) * 0.12;
-      cur.y += (target.y - cur.y) * 0.12;
-      card.style.setProperty('--px', cur.x.toFixed(3));
-      card.style.setProperty('--py', cur.y.toFixed(3));
-      raf = Math.abs(target.x - cur.x) + Math.abs(target.y - cur.y) > 0.002 ? requestAnimationFrame(step) : 0;
-    };
-    const move = (e: PointerEvent) => {
-      const r = card.getBoundingClientRect();
-      target = { x: ((e.clientX - r.left) / r.width) * 2 - 1, y: ((e.clientY - r.top) / r.height) * 2 - 1 };
-      if (!raf) raf = requestAnimationFrame(step);
-    };
-    const leave = () => { target = { x: 0, y: 0 }; if (!raf) raf = requestAnimationFrame(step); };
-    card.addEventListener('pointermove', move);
-    card.addEventListener('pointerleave', leave);
-    this.cleanup.push(() => { card.removeEventListener('pointermove', move); card.removeEventListener('pointerleave', leave); cancelAnimationFrame(raf); });
-  }
-
-  ngOnDestroy() {
-    this.countFrames.forEach((f) => cancelAnimationFrame(f));
-    this.cleanup.forEach((fn) => fn());
-  }
-
-  words(t: string) {
-    return t.split(' ');
-  }
-
-  chars(t: string) {
-    return Array.from(t);
+  /** swipe on touch screens */
+  private swipeX = 0;
+  swipeStart(e: PointerEvent) { this.swipeX = e.clientX; }
+  swipeEnd(e: PointerEvent) {
+    if (e.pointerType === 'mouse') return;
+    const dx = e.clientX - this.swipeX;
+    if (Math.abs(dx) > 50) dx < 0 ? this.next() : this.prev();
   }
 
   pad(n: number) {
     return String(n).padStart(2, '0');
-  }
-
-  /** jump to a chapter by scrolling the pinned section to its slice */
-  goTo(i: number) {
-    if (window.matchMedia(ExperienceComponent.STATIC_LAYOUT).matches) {
-      this.story.nativeElement.querySelector<HTMLElement>(`.chapter[data-i="${i}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
-    }
-    const section = this.story.nativeElement;
-    const track = section.offsetHeight - window.innerHeight;
-    const top = window.scrollY + section.getBoundingClientRect().top + (track / this.chapters.length) * i + 10;
-    window.scrollTo({ top, behavior: 'smooth' });
-  }
-
-  /** the pinned story stays hidden until the visitor asks for it */
-  storyOpen = signal(false);
-
-  start() {
-    this.storyOpen.set(true);
-    // let the section render, then recompute the scroll position and glide to it
-    setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-      this.story.nativeElement.scrollIntoView({ behavior: 'smooth' });
-      // play the first chapter's numbers as the story arrives
-      setTimeout(() => this.zone.runOutsideAngular(() => this.countMetrics(0)), 350);
-    });
-  }
-
-  hideStory() {
-    this.storyOpen.set(false);
-    this.active.set(0);
-    // the story is gone, so bring the intro back into view
-    setTimeout(() => {
-      this.intro.nativeElement.scrollIntoView({ block: 'center', behavior: 'instant' });   // instant: the page just got shorter, a smooth scroll would be cut short
-    }, 50);
   }
 }

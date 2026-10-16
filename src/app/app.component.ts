@@ -4,6 +4,7 @@ import { HeroComponent } from './components/hero/hero.component';
 import { SplitIntroComponent } from './components/split-intro/split-intro.component';
 import { HowIBuildComponent } from './components/how-i-build/how-i-build.component';
 import { ExperienceComponent } from './components/experience/experience.component';
+import { SkillsComponent } from './components/skills/skills.component';
 import { ProjectsComponent } from './components/projects/projects.component';
 import { SectionNavComponent } from './components/section-nav/section-nav.component';
 import { ContactComponent } from './components/contact/contact.component';
@@ -18,6 +19,7 @@ import { AnalyticsService } from './core/analytics.service';
     SplitIntroComponent,
     HowIBuildComponent,
     ExperienceComponent,
+    SkillsComponent,
     ProjectsComponent,
     ContactComponent,
     SectionNavComponent,
@@ -69,6 +71,7 @@ import { AnalyticsService } from './core/analytics.service';
       <app-split-intro />
       <app-how-i-build />
       <app-experience />
+      <app-skills />
       <app-projects />
       <app-contact />
     </main>
