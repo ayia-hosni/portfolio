@@ -37,9 +37,8 @@ export class NavbarComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     let stored: string | null = null;
     try { stored = localStorage.getItem('theme'); } catch {}
-    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
-    const isDark = stored ? stored === 'dark' : prefersDark;
-    if (isDark) {
+    // light is the default whatever the device prefers; dark only when the visitor chose it with the toggle
+    if (stored === 'dark') {
       this.dark.set(true);
       document.documentElement.setAttribute('data-theme', 'dark');
     }
